@@ -6,7 +6,12 @@ project(OctoSpork)
 set(CMAKE_CXX_STANDARD 14)
 
 # Client executable
-add_executable(OctoSporkClient Client/main.cpp)
+file(GLOB CLIENT_SOURCES
+        "Client/*.h"
+        "Client/*.cpp"
+        )
+
+add_executable(OctoSporkClient Client/main.cpp ${CLIENT_SOURCES})
 
 # Include OpenCV for client
 include_directories( ${OpenCV_INCLUDE_DIRS} )
@@ -15,7 +20,12 @@ find_package( OpenCV REQUIRED )
 target_link_libraries( OctoSporkClient ${OpenCV_LIBS} )
 
 # Server executable
-add_executable(OctoSporkServer Server/main.cpp)
+file(GLOB SERVER_SOURCES
+        "Server/*.h"
+        "Server/*.cpp"
+        )
+
+add_executable(OctoSporkServer Server/main.cpp ${SERVER_SOURCES})
 # Include Darknet libraries for server
 # Path to Darknet project folder.
 set(DARKNET_PATH /home/dPons/Documents/Gits/darknet)
