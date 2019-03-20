@@ -1,0 +1,38 @@
+# CMAKE for project OctoSpork - An eterogeneous distributed system for object tracking and fun stuff!
+
+cmake_minimum_required(VERSION 3.0)
+project(OctoSpork)
+
+set(CMAKE_CXX_STANDARD 14)
+
+# Client executable
+add_executable(OctoSporkClient Client/main.cpp)
+
+# Include OpenCV for client
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+
+find_package( OpenCV REQUIRED )
+target_link_libraries( OctoSporkClient ${OpenCV_LIBS} )
+
+# Server executable
+add_executable(OctoSporkServer Server/main.cpp)
+# Include Darknet libraries for server
+# Path to Darknet project folder.
+set(DARKNET_PATH /home/dPons/Documents/Gits/darknet)
+set(PROJ_NAME OctoSporkServer)
+
+# Give a custom name to shared library which is provided by Darkned when
+# the one compiled.
+set(DARKNET_LIB_NAME libdarknet)
+
+# Link Darknet library' include folder.
+include_directories(${DARKNET_PATH}/include)
+
+# Define Darknet library' shared library.
+add_library(${DARKNET_LIB_NAME} SHARED IMPORTED)
+
+# Set a path to Darknet library' shared library
+set_property( TARGET ${DARKNET_LIB_NAME} PROPERTY IMPORTED_LOCATION "${DARKNET_PATH}/libdarknet.so" )
+
+# Link all libraries together.
+target_link_libraries(${PROJ_NAME} ${DARKNET_LIB_NAME})
