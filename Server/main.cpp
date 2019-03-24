@@ -2,7 +2,7 @@
 #include <iostream>
 
 // Additional libraries and classes
-#include "Logger.h"
+#include "../Logger.h"
 
 int main() {
 

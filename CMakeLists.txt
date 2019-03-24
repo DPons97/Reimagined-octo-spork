@@ -10,6 +10,8 @@ set(CMAKE_CXX_STANDARD 14)
 file(GLOB CLIENT_SOURCES
         "Client/*.h"
         "Client/*.cpp"
+        "*.h"
+        "*.cpp"
         )
 
 add_executable(OctoSporkClient Client/main.cpp ${CLIENT_SOURCES})
@@ -24,6 +26,8 @@ target_link_libraries( OctoSporkClient ${OpenCV_LIBS} )
 file(GLOB SERVER_SOURCES
         "Server/*.h"
         "Server/*.cpp"
+        "*.h"
+        "*.cpp"
         )
 
 add_executable(OctoSporkServer Server/main.cpp ${SERVER_SOURCES})

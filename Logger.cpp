@@ -18,7 +18,7 @@ Logger::Logger() {
 
     // Format current time as Day/Month/DayNr_hh:dd:ss:Yr.Log
     auto FormattedTime = std::ctime(&CurrentTime);
-    FileName.assign("../Logs/").append(FormattedTime).erase(FileName.end()-1, FileName.end());
+    FileName.assign("Logs/").append(FormattedTime).erase(FileName.end()-1, FileName.end());
     FileName += ".Log";
 
     // Replace spaces with underscores
@@ -27,10 +27,10 @@ Logger::Logger() {
     }
 
     // Try to open Logs directory
-    DIR * LogDir = opendir("../Logs/");
+    DIR * LogDir = opendir("Logs/");
     if (LogDir == nullptr) {
         // Create new dir
-        mkdir("../Logs/", 0777);
+        mkdir("Logs/", 0777);
     } else closedir(LogDir);
 
     // Open log file
@@ -38,7 +38,7 @@ Logger::Logger() {
 }
 
 Logger::Logger(const string &FileName){
-    this->FileName.assign("../Logs/");
+    this->FileName.assign("Logs/");
     this->FileName.append(FileName).append(".Log");
 
     // Replace spaces with underscores
@@ -47,10 +47,10 @@ Logger::Logger(const string &FileName){
     }
 
     // Try to open Logs directory
-    DIR * LogDir = opendir("../Logs/");
+    DIR * LogDir = opendir("Logs/");
     if (LogDir == nullptr) {
         // Create new dir
-        mkdir("../Logs/", 0777);
+        mkdir("Logs/", 0777);
     } else closedir(LogDir);
 
 
