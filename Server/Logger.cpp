@@ -5,6 +5,9 @@
 #include "Logger.h"
 #include <chrono>
 #include <stdio.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 using namespace std;
 using namespace chrono;
@@ -23,6 +26,13 @@ Logger::Logger() {
         c = c == ' ' ? '_' : c;
     }
 
+    // Try to open Logs directory
+    DIR * LogDir = opendir("../Logs/");
+    if (LogDir == nullptr) {
+        // Create new dir
+        mkdir("../Logs/", 0777);
+    } else closedir(LogDir);
+
     // Open log file
     LogFile = fopen(FileName.data(), "w+");
 }
@@ -36,12 +46,16 @@ Logger::Logger(const string &FileName){
         c = c == ' ' ? '_' : c;
     }
 
+    // Try to open Logs directory
+    DIR * LogDir = opendir("../Logs/");
+    if (LogDir == nullptr) {
+        // Create new dir
+        mkdir("../Logs/", 0777);
+    } else closedir(LogDir);
+
+
     // Open log file
     LogFile = fopen(this->FileName.data(), "w+");
-}
-
-Logger::~Logger() {
-    fclose(LogFile);
 }
 
 string Logger::getLastMessage() const {
@@ -60,3 +74,6 @@ void Logger::WriteLog(string ToWrite) {
     fprintf(LogFile, "[%s]: %s\n", FormattedTime.data(), ToWrite.data());
 }
 
+Logger::~Logger() {
+    fclose(LogFile);
+}

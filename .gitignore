@@ -35,5 +35,12 @@
 cmake-build-debug/
 .idea/
 
+# Logs and Darknet files
 Logs/
+Server/darknet/data/
+Server/darknet/*.jpg
+Server/darknet/*.weights
+
+
+
 

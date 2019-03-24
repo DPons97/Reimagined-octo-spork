@@ -3,6 +3,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(OctoSpork)
 
+
 set(CMAKE_CXX_STANDARD 14)
 
 # Client executable
@@ -28,7 +29,7 @@ file(GLOB SERVER_SOURCES
 add_executable(OctoSporkServer Server/main.cpp ${SERVER_SOURCES})
 # Include Darknet libraries for server
 # Path to Darknet project folder.
-set(DARKNET_PATH /home/dPons/Documents/Gits/darknet)
+set(DARKNET_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Server/darknet/")
 set(PROJ_NAME OctoSporkServer)
 
 # Give a custom name to shared library which is provided by Darkned when
