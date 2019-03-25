@@ -30,7 +30,7 @@ file(GLOB SERVER_SOURCES
         "*.cpp"
         )
 
-add_executable(OctoSporkServer Server/main.cpp ${SERVER_SOURCES})
+add_executable(OctoSporkServer Server/main.cpp ${SERVER_SOURCES} Server/SNode.cpp Server/SNode.h)
 # Include Darknet libraries for server
 # Path to Darknet project folder.
 set(DARKNET_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Server/darknet/")
