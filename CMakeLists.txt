@@ -15,7 +15,7 @@ file(GLOB CLIENT_SOURCES
         "*.cpp"
         )
 
-add_executable(OctoSporkClient Client/main.cpp ${CLIENT_SOURCES})
+add_executable(OctoSporkClient Client/main.cpp ${CLIENT_SOURCES} Client/CNode.cpp Client/CNode.h)
 
 # Include OpenCV for client
 include_directories( ${OpenCV_INCLUDE_DIRS} )

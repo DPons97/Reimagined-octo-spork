@@ -15,6 +15,8 @@ private:
     void bkgSubtraction();
     void identifyObjects();
     void trackObject();
+    void sendMessage(int sockfd, int cod);
+    void error(const char * msg);
 public:
     CNode(int portno, char * hostname);
     void listen();

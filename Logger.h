@@ -20,11 +20,12 @@ private:
 
     FILE * LogFile;
 
+    bool print;
 public:
 
-    Logger();
+    Logger(bool print = false);
 
-    Logger(const string &FileName);
+    Logger(const string &FileName, bool print=false);
 
     string getLastMessage() const;
 

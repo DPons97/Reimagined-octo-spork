@@ -12,7 +12,7 @@
 using namespace std;
 using namespace chrono;
 
-Logger::Logger() {
+Logger::Logger(bool print) {
     // Get current time
     auto CurrentTime = system_clock::to_time_t(system_clock::now());
 
@@ -35,9 +35,11 @@ Logger::Logger() {
 
     // Open log file
     LogFile = fopen(FileName.data(), "w+");
+
+    this->print = print;
 }
 
-Logger::Logger(const string &FileName){
+Logger::Logger(const string &FileName, bool print){
     this->FileName.assign("Logs/");
     this->FileName.append(FileName).append(".Log");
 
@@ -56,6 +58,7 @@ Logger::Logger(const string &FileName){
 
     // Open log file
     LogFile = fopen(this->FileName.data(), "w+");
+    this->print = print;
 }
 
 string Logger::getLastMessage() const {
@@ -72,6 +75,8 @@ void Logger::WriteLog(string ToWrite) {
     FormattedTime.erase(FormattedTime.end()-1, FormattedTime.end());
 
     fprintf(LogFile, "[%s]: %s\n", FormattedTime.data(), ToWrite.data());
+
+    if (print) printf("[%s]: %s\n", FormattedTime.data(), ToWrite.data());
 }
 
 Logger::~Logger() {
