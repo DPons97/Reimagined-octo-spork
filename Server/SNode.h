@@ -9,6 +9,9 @@
 class SNode {
     int socket;
 
+
+public:
+    SNode(int socket);
 };
 
 

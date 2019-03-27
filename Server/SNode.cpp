@@ -3,3 +3,7 @@
 //
 
 #include "SNode.h"
+
+SNode::SNode(int socket) : socket(socket) {
+
+}
