@@ -6,12 +6,35 @@
 #define OCTOSPORK_CONNECTION_H
 
 
+#include "../Logger.h"
+
 class SNode {
-    int socket;
+    const int socket;
+
+    Logger log;
+
+    char buffer[256];
 
 
 public:
     SNode(int socket);
+
+    void start();
+
+    int getSocket() const;
+
+    virtual ~SNode();
+
+    const char * toString();
+
+protected:
+
+
+private:
+    bool sendInstruction(int instrCode);
+
+    bool getAnswerCode(int *outCode);
+
 };
 
 
