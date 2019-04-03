@@ -15,6 +15,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <iostream>
 #include <list>
+#include <wait.h>
 #include "CNode.h"
 
 /**
@@ -34,7 +35,7 @@ CNode::CNode(int portno, char * hostname) {
     struct hostent *server;
 
     log = Logger(true);
-
+    this->hostname = hostname;
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
         error("ERROR opening socket");
@@ -55,32 +56,6 @@ CNode::CNode(int portno, char * hostname) {
     log.WriteLog("Connected");
 }
 
-void CNode::bkgSubtraction() {
-    // TODO: actual implementation
-    log.WriteLog("Starting background subtraction");
-    sleep(3);
-    log.WriteLog("Found a changement in frame");
-    sendMessage(sockfd, 11); // this code is probably going to change
-    //std::terminate();
-}
-
-void CNode::trackObject() {
-    // TODO: actual implementation
-    log.WriteLog("Starting object tracking");
-    sleep(3);
-    log.WriteLog("Object is here");
-    sendMessage(sockfd, 12); // this code is probably going to change
-    //std::terminate();
-}
-
-void CNode::identifyObjects() {
-    // TODO: actual implementation
-    log.WriteLog("Starting frame identification");
-    sleep(3);
-    log.WriteLog("I found a cute doggo");
-    sendMessage(sockfd, 13); // this code is probably going to change
-    //std::terminate();
-}
 
 void CNode::sendMessage(int sockfd, int cod) {
     // send a message with the passed code to the main node/server node
@@ -100,55 +75,89 @@ void CNode::listen() {
     // listen for instructions from the main node/server node
     // when asked to start a task, execute it in a new thread
     int n_read, cod;
+    int status;
     char buffer[256];
-    list<std::thread *> threads;
+    list<int> pids;
+    int childPid, deadPid;
+    std::string msg;
+    std::vector<std::string> sep_msg;
+    std::vector<char *> args;
     while(1){
         bzero(buffer, 256);
-        n_read = read(sockfd, buffer, 255);
+        n_read = static_cast<int>(read(sockfd, buffer, 255));
         if (n_read < 0)
             error("ERROR reading from socket");
         log.WriteLog(string("Received ").append(buffer));
-        cod = atoi(buffer);
-        auto it = threads.begin();
-        while (it != threads.end()){
-            if(!(*it)->joinable()){
-                (*it)->~thread();
-                it = threads.erase(it);
-            } else {
-                it++;
-            }
+
+        msg = std::string(buffer);
+        sep_msg = split(msg, "-");
+        cod = std::atoi(sep_msg[0].c_str());
+
+        if (sep_msg.size()>1){
+            args = split_char(sep_msg[1], ",");
+            args.insert(args.begin(), hostname);
         }
-        switch (cod){
+        args.push_back(NULL);
+        
+        deadPid = waitpid(-1, &status,WNOHANG);
+        printf("waitpid res: %d", deadPid);
+        if (!deadPid)pids.remove(deadPid);
+            
+        
+        switch (cod){   
             case 0: // end connection and stop
             {
-                log.WriteLog("Killing threads");
-                sendMessage(sockfd, 0);
-                for (std::thread * t : threads){
-                    t->~thread();
+                for(auto &pid:pids){
+                    kill(pid, SIGTERM);
                 }
-                close(sockfd);
+                log.WriteLog("EXIT MESSAGE RECEIVED");
                 log.~Logger();
                 exit(0);
             }
             case 1: // start background subtraction job
             {
-                std::thread subtracter(&CNode::bkgSubtraction, this);
-                threads.push_back(&subtracter);
-                subtracter.detach();
+                childPid = fork();
+                if (!childPid) pids.push_back(childPid);
+
+                else {
+                    char * name = const_cast<char *>("ChildExample");
+                    args.insert(args.begin(), name);
+                    for (auto &arg : args) {
+                        if(arg!= NULL)
+                        log.WriteLog(arg);
+                    }
+                    execvp("../Executables/ChildExample", args.data());
+                }
                 break;
             }
             case 2: // start tracking job
             {
-                std::thread tracker(&CNode::trackObject,this);
-                threads.push_back(&tracker);
-                tracker.detach();
+                childPid = fork();
+                if (!childPid) pids.push_back(childPid);
+
+                else{
+                    char * name = const_cast<char *>("ChildExample");
+                    args.insert(args.begin(), name);
+                    for (auto &arg : args) {
+                        log.WriteLog(arg);
+                    }
+                    execvp("../Executables/ChildExample2", args.data());
+                }
                 break;
             }
             case 3: // start identifier job
             {
-                std::thread identifier(&CNode::identifyObjects,this);
-                threads.push_back(&identifier);
-                identifier.detach();
+                childPid = fork();
+                if (!childPid) pids.push_back(childPid);
+
+                else {
+                    char * name = const_cast<char *>("ChildExample");
+                    args.insert(args.begin(), name);
+                    for (auto &arg : args) {
+                        log.WriteLog(arg);
+                    }
+                    execvp("../Executables/ChildExample3", args.data());
+                }
                 break;
             }
             default: // report unidentified cod
@@ -165,3 +174,29 @@ void CNode::error(const char *msg)
     log.WriteLog(msg);
     exit(1);
 }
+
+std::vector<std::string> CNode::split(std::string str,std::string sep){
+    char* cstr=const_cast<char*>(str.c_str());
+    char* current;
+    std::vector<std::string> arr;
+    current=strtok(cstr,sep.c_str());
+    while(current!=NULL){
+        arr.push_back(current);
+        current=strtok(NULL,sep.c_str());
+    }
+    return arr;
+}
+
+std::vector<char *> CNode::split_char(std::string str,std::string sep){
+    char* cstr=const_cast<char*>(str.c_str());
+    char* current;
+    std::vector<char *> arr;
+    current=strtok(cstr,sep.c_str());
+    while(current!=NULL){
+        arr.push_back(current);
+        current=strtok(NULL,sep.c_str());
+    }
+    return arr;
+}
+
+
