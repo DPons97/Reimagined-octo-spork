@@ -77,6 +77,7 @@ void Logger::WriteLog(string ToWrite) {
     fprintf(LogFile, "[%s]: %s\n", FormattedTime.data(), ToWrite.data());
 
     if (print) printf("[%s]: %s\n", FormattedTime.data(), ToWrite.data());
+    fflush(LogFile);
 }
 
 Logger::~Logger() {

@@ -6,18 +6,27 @@
 #define OCTOSPORK_CONNECTION_H
 
 
+#include <mutex>
 #include "../Logger.h"
 
+typedef struct {
+    int nodeSocket;
+    int nodePort;
+} nodeArgs;
+
 class SNode {
-    const int socket;
+    int currSocket;
+
+    int currPort;
 
     Logger log;
 
-    char buffer[256];
+    list<int> instructions;
 
+    mutex instrMutex;
 
 public:
-    SNode(int socket);
+    void operator()(nodeArgs init);
 
     void start();
 
@@ -31,10 +40,11 @@ protected:
 
 
 private:
-    bool sendInstruction(int instrCode);
+    bool sendMessage(int instrCode, const list<string> &args = list<string>());
 
-    bool getAnswerCode(int *outCode);
+    bool getAnswerCode(int *outCode, int instrSocket);
 
+    int sendInstruction(int instrCode, list<string> args = list<string>());
 };
 
 

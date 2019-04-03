@@ -14,10 +14,11 @@
 #include "../Logger.h"
 #include "SNode.h"
 
+#define DEF_PORT 51297
+
 int newSocket(int portno);
 
-void waitForConnection(int socket);
-
+void waitForConnection(int socket, int sockPort);
 
 // Utility functions
 void error(const char *msg, Logger * log)
@@ -33,26 +34,17 @@ using namespace std;
 
 Logger * mainLog;
 
-list<int> pids;      // Fork pids
-
-
 int main(int argc, char *argv[]) {
-    int newSock;
+    int port;
     mainLog = new Logger(string("MainServer"), true);
 
-    // Socket port must be provided through command line
-    if (argc < 2) {
-        fprintf(stderr,"ERROR, no port provided\n");
-        mainLog->WriteLog("ERROR: no port provided");
-        exit(1);
-    }
+    // Socket port can be provided through command line (Default is 51297)
+    // Create new socket @ ConnectionHandler's port (defined by the user or default)
+    int sockfd = newSocket(port = (argc>=2) ? atoi(argv[1]) : DEF_PORT);
+    thread connectionHandler(waitForConnection, sockfd, port);
 
-    // Create new socket @ ConnectionHandler's port (defined by the user)
-    int sockfd = newSocket(atoi(argv[1]));
-    thread connectionHandler(waitForConnection, sockfd);
-
-    connectionHandler.join();
-    free(mainLog);
+    connectionHandler.join();   // TODO: Thread's useless?
+    delete mainLog;
     return 0;
 }
 
@@ -78,7 +70,7 @@ int newSocket (int portno) {
     return sockfd;
 }
 
-void waitForConnection(int socket) {
+void waitForConnection(int socket, int sockPort) {
     int newSock;
     struct sockaddr_in cli_addr;
     socklen_t clilen;
@@ -89,39 +81,24 @@ void waitForConnection(int socket) {
 
         // New connection requested
         clilen = sizeof(cli_addr);
-        printf("Waiting for connection...\n");
+        mainLog->WriteLog("Waiting for connection...\n");
         newSock = accept(socket,
                          (struct sockaddr *) &cli_addr,
                          &clilen);
 
-        printf("Connecting at %d\n", cli_addr.sin_port);
+        mainLog->WriteLog("Connection requested");
 
         if (newSock < 0) {
             error("ERROR on accept", mainLog);
             break;
-        }
-
-        // Create new Node object with new socket and start new process
-        int newPid = fork();
-
-        if (newPid < 0) {
-            error("ERROR on fork", mainLog);
-        } else if (newPid == 0) {
-            close(socket);
-            auto * newNode = new SNode(newSock);
-            delete newNode;
-            exit(0);
         } else {
-            pids.push_back(newPid);
-            close(newSock);
-        }
+            // Create new Node object as a thread
+            nodeArgs nodeArguments;
+            nodeArguments.nodePort = sockPort;
+            nodeArguments.nodeSocket = newSock;
 
-        // Delete pids of terminated forks
-        auto it = pids.begin();
-        while (it != pids.end()) {
-            // Remove this pid from array
-            if (waitpid(*it, nullptr, WNOHANG)) it = pids.erase(it);
-            else it++;
+            thread newNode((SNode()), nodeArguments);
+            newNode.detach();
         }
     }
 }
