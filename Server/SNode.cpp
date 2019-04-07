@@ -12,18 +12,13 @@
 #include "SNode.h"
 
 
-// Override of operator () works as constructor
-void SNode::operator()(nodeArgs init) {
-    this->currSocket = init.nodeSocket;
-    this->currPort = init.nodePort;
+void SNode::start(int nodeSocket, int nodePort){
+    this->currSocket = nodeSocket;
+    this->currPort = nodePort;
     log = Logger(true);
 
     log.WriteLog(string("[").append(toString()).append("] New node created"));
 
-    start();
-}
-
-void SNode::start(){
     int answer, i;
 
     i = 2;
@@ -55,7 +50,7 @@ int SNode::sendInstruction(int instrCode, list<string> args) {// Send instructio
     // Find first free port
     int assignedPort = currPort + 1;
 
-    instrMutex.lock();
+    //instrMutex.lock();
     auto it = instructions.begin();
     while (it != instructions.end() && (*it) != -1) {
         assignedPort++;

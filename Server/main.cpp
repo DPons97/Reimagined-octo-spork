@@ -41,9 +41,8 @@ int main(int argc, char *argv[]) {
     // Socket port can be provided through command line (Default is 51297)
     // Create new socket @ ConnectionHandler's port (defined by the user or default)
     int sockfd = newSocket(port = (argc>=2) ? atoi(argv[1]) : DEF_PORT);
-    thread connectionHandler(waitForConnection, sockfd, port);
+    waitForConnection(sockfd, port);
 
-    connectionHandler.join();   // TODO: Thread's useless?
     delete mainLog;
     return 0;
 }
@@ -92,13 +91,9 @@ void waitForConnection(int socket, int sockPort) {
             error("ERROR on accept", mainLog);
             break;
         } else {
+            SNode newNode;
             // Create new Node object as a thread
-            nodeArgs nodeArguments;
-            nodeArguments.nodePort = sockPort;
-            nodeArguments.nodeSocket = newSock;
-
-            thread newNode((SNode()), nodeArguments);
-            newNode.detach();
+            new thread(&SNode::start, std::ref(newNode), newSock, sockPort);
         }
     }
 }

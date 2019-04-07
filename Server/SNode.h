@@ -5,14 +5,8 @@
 #ifndef OCTOSPORK_CONNECTION_H
 #define OCTOSPORK_CONNECTION_H
 
-
-#include <mutex>
 #include "../Logger.h"
-
-typedef struct {
-    int nodeSocket;
-    int nodePort;
-} nodeArgs;
+#include <mutex>
 
 class SNode {
     int currSocket;
@@ -23,12 +17,10 @@ class SNode {
 
     list<int> instructions;
 
-    mutex instrMutex;
+    std::mutex instrMutex;
 
 public:
-    void operator()(nodeArgs init);
-
-    void start();
+    void start(int nodeSocket, int nodePort);
 
     int getSocket() const;
 
