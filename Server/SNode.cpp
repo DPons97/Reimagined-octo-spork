@@ -21,7 +21,7 @@ void SNode::start(int nodeSocket, int nodePort){
 
     int answer, i;
 
-    i = 2;
+    i = 1;
     do {
         int instrSock = sendInstruction(i);
         printf("Sending %d\n", i);
@@ -32,10 +32,6 @@ void SNode::start(int nodeSocket, int nodePort){
     } while (i < 4); //&& answer == (i - 1 + 10));
 
     int discSock = sendMessage(0);
-
-    do {
-        getAnswerCode(&answer, discSock);
-    } while (answer != 0);
 }
 
 /*

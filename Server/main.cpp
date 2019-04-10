@@ -55,6 +55,10 @@ int newSocket (int portno) {
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) error("ERROR opening socket", mainLog);
 
+    int enable = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0)
+        error("setsockopt(SO_REUSEADDR) failed", mainLog);
+
     // Setting server address and port no.
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
@@ -91,7 +95,7 @@ void waitForConnection(int socket, int sockPort) {
             error("ERROR on accept", mainLog);
             break;
         } else {
-            SNode newNode;
+            auto newNode = new SNode();
             // Create new Node object as a thread
             new thread(&SNode::start, std::ref(newNode), newSock, sockPort);
         }

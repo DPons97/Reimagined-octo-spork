@@ -16,6 +16,7 @@
 #include <iostream>
 #include <list>
 #include <wait.h>
+
 #include "CNode.h"
 
 /**
@@ -35,7 +36,11 @@ CNode::CNode(int portno, char * hostname) {
     struct hostent *server;
 
     log = Logger(true);
+    execNames = map<int, string>();
     this->hostname = hostname;
+
+    readCodeFile();
+
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0)
         error("ERROR opening socket");
@@ -82,7 +87,8 @@ void CNode::listen() {
     std::string msg;
     std::vector<std::string> sep_msg;
     std::vector<char *> args;
-    while(1){
+
+    while(true){
         bzero(buffer, 256);
         n_read = static_cast<int>(read(sockfd, buffer, 255));
         if (n_read < 0)
@@ -100,71 +106,42 @@ void CNode::listen() {
         args.push_back(NULL);
         
         deadPid = waitpid(-1, &status,WNOHANG);
-        printf("waitpid res: %d", deadPid);
+        printf("waitpid res: %d\n", deadPid);
         if (!deadPid)pids.remove(deadPid);
-            
-        
-        switch (cod){   
-            case 0: // end connection and stop
-            {
-                for(auto &pid:pids){
-                    kill(pid, SIGTERM);
-                }
-                log.WriteLog("EXIT MESSAGE RECEIVED");
-                log.~Logger();
-                exit(0);
-            }
-            case 1: // start background subtraction job
-            {
-                childPid = fork();
-                if (!childPid) pids.push_back(childPid);
 
-                else {
-                    char * name = const_cast<char *>("ChildExample");
-                    args.insert(args.begin(), name);
-                    for (auto &arg : args) {
-                        if(arg!= NULL)
-                        log.WriteLog(arg);
-                    }
-                    execvp("../Executables/ChildExample", args.data());
-                }
-                break;
-            }
-            case 2: // start tracking job
-            {
-                childPid = fork();
-                if (!childPid) pids.push_back(childPid);
+        if (cod == 0) {
 
-                else{
-                    char * name = const_cast<char *>("ChildExample");
-                    args.insert(args.begin(), name);
-                    for (auto &arg : args) {
-                        log.WriteLog(arg);
-                    }
-                    execvp("../Executables/ChildExample2", args.data());
-                }
-                break;
+            // end connection and stop
+            for(auto &pid:pids){
+                kill(pid, SIGTERM);
             }
-            case 3: // start identifier job
-            {
-                childPid = fork();
-                if (!childPid) pids.push_back(childPid);
+            log.WriteLog("EXIT MESSAGE RECEIVED");
+            log.~Logger();
+            exit(0);
 
-                else {
-                    char * name = const_cast<char *>("ChildExample");
-                    args.insert(args.begin(), name);
-                    for (auto &arg : args) {
-                        log.WriteLog(arg);
-                    }
-                    execvp("../Executables/ChildExample3", args.data());
+        } else if (cod > 0) {
+
+            // start background subtraction job
+            childPid = fork();
+            if (childPid < 0) log.WriteLog("ERROR on creating process");
+            else if (childPid == 0) {
+
+                char * name = const_cast<char *>(execNames[cod].data());
+                args.insert(args.begin(), name);
+                for (auto arg : args) {
+                    if(arg!= NULL) log.WriteLog(arg);
                 }
-                break;
-            }
-            default: // report unidentified cod
-                log.WriteLog("Unknown cod");
-        }
+
+                // Build exec path
+                string path = "../Executables/";
+                path.append(execNames[cod]);
+
+                execvp(path.data(), args.data());
+
+            } else pids.push_back(childPid);
+
+        } else log.WriteLog("Unknown cod");
     }
-
 }
 
 
@@ -198,5 +175,35 @@ std::vector<char *> CNode::split_char(std::string str,std::string sep){
     }
     return arr;
 }
+
+/**
+ * Read instruction codes and relative executable names
+ */
+void CNode::readCodeFile() {
+    // Open executable info file
+    ifstream execFile;
+    int execQty = 0;
+
+    execFile.open("../Executables/executables.txt", std::ifstream::in);
+    // Read executables quantity
+    execFile >> execQty;
+    if (execQty == 0) return;
+
+    // Read executables names from file
+    string buffer;
+    vector<string> sep_buffer;
+    std::getline(execFile, buffer);
+    for (int i = 0; i < execQty; ++i) {
+        int code = -1;
+        std::getline(execFile, buffer);
+
+        // Split string in instruction code and executable name
+        sep_buffer = split(buffer, ":");
+        std::sscanf(sep_buffer[0].data(), "%d", &code);
+
+        execNames[code] = sep_buffer[1];
+    }
+}
+
 
 

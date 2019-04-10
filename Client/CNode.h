@@ -6,24 +6,43 @@
 #define OCTOSPORK_CNODE_H
 #include "../Logger.h"
 #include <vector>
+#include <map>
 
 using namespace std;
 
 class CNode {
-private:
-    Logger log;
-    int sockfd;
-    void bkgSubtraction();
-    void identifyObjects();
-    void trackObject();
-    void sendMessage(int sockfd, int cod);
-    void error(const char * msg);
-    vector<string> split(string str,string sep);
-    vector<char *> split_char(string str,string sep);
-    char * hostname;
+
 public:
     CNode(int portno, char * hostname);
+
     void listen();
+
+protected:
+
+private:
+    Logger log;
+
+    int sockfd;
+
+    char * hostname;
+
+    std::map<int, string> execNames;
+
+    void bkgSubtraction();
+
+    void identifyObjects();
+
+    void trackObject();
+
+    void sendMessage(int sockfd, int cod);
+
+    void error(const char * msg);
+
+    vector<string> split(string str,string sep);
+
+    vector<char *> split_char(string str,string sep);
+
+    void readCodeFile();
 };
 
 
