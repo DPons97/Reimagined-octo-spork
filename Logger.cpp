@@ -20,7 +20,7 @@ Logger::Logger(bool print) {
     // Format current time as Day/Month/DayNr_hh:dd:ss:Yr.Log
     auto FormattedTime = std::ctime(&CurrentTime);
     FileName.assign("Logs/").append(FormattedTime).erase(FileName.end()-1, FileName.end());
-    FileName += ".Log";
+    FileName += ".log";
 
     // Replace spaces with underscores
     for (char &c : FileName) {
@@ -35,7 +35,7 @@ Logger::Logger(bool print) {
     } else closedir(LogDir);
 
     // Open log file
-    LogFile->open(FileName.data(), ifstream::out);
+    LogFile->open(FileName.data(), ios::out);
 
     this->print = print;
 }
@@ -44,7 +44,7 @@ Logger::Logger(const string &FileName, bool print){
     LogFile = new fstream();
 
     this->FileName.assign("Logs/");
-    this->FileName.append(FileName).append(".Log");
+    this->FileName.append(FileName).append(".log");
 
     // Replace spaces with underscores
     for (char &c : this->FileName) {
@@ -60,7 +60,7 @@ Logger::Logger(const string &FileName, bool print){
 
 
     // Open log file
-    LogFile->open(this->FileName.data(), ifstream::out);
+    LogFile->open(this->FileName.data(), ios::out);
     this->print = print;
 }
 
@@ -85,5 +85,6 @@ void Logger::WriteLog(const string& ToWrite) {
 }
 
 Logger::~Logger() {
-    if (LogFile->is_open()) LogFile->close();
+    if (LogFile->is_open())
+        LogFile->close();
 }

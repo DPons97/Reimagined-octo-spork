@@ -16,8 +16,8 @@ void SNode::start(int nodeSocket, int nodePort){
     this->currSocket = nodeSocket;
     this->currPort = nodePort;
 
-    log = Logger(true);
-    log.WriteLog(string("[").append(toString()).append("] New node created"));
+    log = new Logger("nodeServer", true);
+    log->WriteLog(string("[").append(toString()).append("] New node created"));
 
     int answer, i;
 
@@ -52,7 +52,7 @@ int SNode::sendInstruction(int instrCode, list<string> args) {// Send instructio
         assignedPort++;
         it++;
     }
-    log.WriteLog(string("Found new port: ").append(to_string(assignedPort)));
+    log->WriteLog(string("Found new port: ").append(to_string(assignedPort)));
 
     // Establish instruction connection at new port
     int sockfd, newSock;
@@ -62,13 +62,13 @@ int SNode::sendInstruction(int instrCode, list<string> args) {// Send instructio
     // Creating new socket
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
-        log.WriteLog(string("[").append(toString()).append("] ERROR opening new socket"));
+        log->WriteLog(string("[").append(toString()).append("] ERROR opening new socket"));
     }
 
     // Force override old closed sockets
     int enable = 1;
     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
-        log.WriteLog("setsockopt(SO_REUSEADDR) failed");
+        log->WriteLog("setsockopt(SO_REUSEADDR) failed");
     }
 
     // Setting server address and port no.
@@ -79,11 +79,11 @@ int SNode::sendInstruction(int instrCode, list<string> args) {// Send instructio
 
     // Binding socket to server address/port
     if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-        log.WriteLog(string("[").append(toString()).append("] ERROR on binding"));
+        log->WriteLog(string("[").append(toString()).append("] ERROR on binding"));
     }
 
 
-    log.WriteLog(string("[").append(toString()).append("] Ready to connect at new socket"));
+    log->WriteLog(string("[").append(toString()).append("] Ready to connect at new socket"));
 
     // Merge assigned port to other arguments
     args.push_front(to_string(assignedPort));
@@ -93,7 +93,7 @@ int SNode::sendInstruction(int instrCode, list<string> args) {// Send instructio
 
     // New connection requested
     clilen = sizeof(cli_addr);
-    log.WriteLog(string("[").append(toString()).append("] Connection requested. Accepting..."));
+    log->WriteLog(string("[").append(toString()).append("] Connection requested. Accepting..."));
     newSock = accept(sockfd,
                      (struct sockaddr *) &cli_addr,
                      &clilen);
@@ -101,7 +101,7 @@ int SNode::sendInstruction(int instrCode, list<string> args) {// Send instructio
     close(sockfd);
 
     if (newSock < 0) {
-        log.WriteLog(string("[").append(toString()).append("] Error on binding new socket"));
+        log->WriteLog(string("[").append(toString()).append("] Error on binding new socket"));
         return -1;
     } else {
         instructions.insert(it, newSock);
@@ -125,7 +125,7 @@ bool SNode::sendMessage(int instrCode, const list<string> &args) {
 
     n = (int) write(currSocket, message.data(), strlen(message.data()));
     if (n < 0) {
-        log.WriteLog(string("[").append(toString()).append("] ERROR writing to socket"));
+        log->WriteLog(string("[").append(toString()).append("] ERROR writing to socket"));
         return false;
     }
 
@@ -143,7 +143,7 @@ bool SNode::getAnswerCode(int *outCode, int instrSocket) {
     bzero(answerBuff, 10);
     n = (int) read(instrSocket, answerBuff, sizeof(answerBuff));
     if (n < 0) {
-        log.WriteLog(string("[").append(toString()).append("] ERROR reading answer"));
+        log->WriteLog(string("[").append(toString()).append("] ERROR reading answer"));
         return false;
     }
 
@@ -176,7 +176,8 @@ const char * SNode::toString() {
  * Send disconnect command to node
  */
 SNode::~SNode() {
-    log.WriteLog(string("[").append(toString()).append("] Disconnecting..."));
+    log->WriteLog(string("[").append(toString()).append("] Disconnecting..."));
     //sendInstruction(0);
     close(currSocket);
+    delete log;
 }

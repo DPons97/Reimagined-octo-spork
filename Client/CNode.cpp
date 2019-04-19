@@ -35,7 +35,7 @@ CNode::CNode(int portno, char * hostname) {
     struct sockaddr_in serv_addr;
     struct hostent *server;
 
-    log = Logger(true);
+    log = new Logger("nodeClient", true);
     execNames = map<int, string>();
     this->hostname = hostname;
 
@@ -55,10 +55,10 @@ CNode::CNode(int portno, char * hostname) {
           (char *)&serv_addr.sin_addr.s_addr,
           server->h_length);
     serv_addr.sin_port = htons(portno);
-    log.WriteLog(string("Trying to connect to ").append(hostname));
+    log->WriteLog(string("Trying to connect to ").append(hostname));
     if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
         error("ERROR connecting");
-    log.WriteLog("Connected");
+    log->WriteLog("Connected");
 }
 
 
@@ -73,7 +73,7 @@ void CNode::sendMessage(int sockfd, int cod) {
     if (n_write < 0)
         error("ERROR writing to socket");
 
-    log.WriteLog(string("Sending message ").append(buffer));
+    log->WriteLog(string("Sending message ").append(buffer));
 }
 
 void CNode::listen() {
@@ -93,7 +93,7 @@ void CNode::listen() {
         n_read = static_cast<int>(read(sockfd, buffer, 255));
         if (n_read < 0)
             error("ERROR reading from socket");
-        log.WriteLog(string("Received ").append(buffer));
+        log->WriteLog(string("Received ").append(buffer));
 
         msg = std::string(buffer);
         sep_msg = split(msg, "-");
@@ -115,21 +115,21 @@ void CNode::listen() {
             for(auto &pid:pids){
                 kill(pid, SIGTERM);
             }
-            log.WriteLog("EXIT MESSAGE RECEIVED");
-            log.~Logger();
+            log->WriteLog("EXIT MESSAGE RECEIVED");
+            log->~Logger();
             exit(0);
 
         } else if (cod > 0) {
 
             // start background subtraction job
             childPid = fork();
-            if (childPid < 0) log.WriteLog("ERROR on creating process");
+            if (childPid < 0) log->WriteLog("ERROR on creating process");
             else if (childPid == 0) {
 
                 char * name = const_cast<char *>(execNames[cod].data());
                 args.insert(args.begin(), name);
                 for (auto arg : args) {
-                    if(arg!= NULL) log.WriteLog(arg);
+                    if(arg!= NULL) log->WriteLog(arg);
                 }
 
                 // Build exec path
@@ -140,7 +140,7 @@ void CNode::listen() {
 
             } else pids.push_back(childPid);
 
-        } else log.WriteLog("Unknown cod");
+        } else log->WriteLog("Unknown cod");
     }
 }
 
@@ -148,7 +148,7 @@ void CNode::listen() {
 void CNode::error(const char *msg)
 {
     perror(msg);
-    log.WriteLog(msg);
+    log->WriteLog(msg);
     exit(1);
 }
 
@@ -205,5 +205,8 @@ void CNode::readCodeFile() {
     }
 }
 
+CNode::~CNode() {
+    delete log;
+}
 
 

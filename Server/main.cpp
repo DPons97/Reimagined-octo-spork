@@ -38,7 +38,7 @@ Logger * mainLog;
 
 int main(int argc, char *argv[]) {
     int port;
-    mainLog = new Logger(string("MainServer"), true);
+    mainLog = new Logger(string("mainServer"), true);
 
     // Socket port can be provided through command line (Default is 51297)
     // Create new socket @ ConnectionHandler's port (defined by the user or default)

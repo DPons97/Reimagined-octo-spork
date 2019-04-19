@@ -17,10 +17,12 @@ public:
 
     void listen();
 
+    virtual ~CNode();
+
 protected:
 
 private:
-    Logger log;
+    Logger * log;
 
     int sockfd;
 
@@ -43,6 +45,7 @@ private:
     vector<char *> split_char(string str,string sep);
 
     void readCodeFile();
+
 };
 
 
