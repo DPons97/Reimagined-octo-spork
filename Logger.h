@@ -29,7 +29,7 @@ public:
 
     string getLastMessage() const;
 
-    void WriteLog(const string& ToWrite);
+    void writeLog(const string &ToWrite);
 
     ~Logger();
 };

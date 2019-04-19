@@ -12,23 +12,10 @@
 
 // Additional libraries and classes
 #include "../Logger.h"
+#include <signal.h>
 #include "SNode.h"
 
 #define DEF_PORT 51297
-
-int newSocket(int portno);
-
-void waitForConnection(int socket, int sockPort);
-
-void startNode(int newSock, int port);
-
-// Utility functions
-void error(const char *msg, Logger * log)
-{
-    perror(msg);
-    log->WriteLog(msg);
-    exit(1);
-}
 
 using namespace std;
 
@@ -36,9 +23,38 @@ using namespace std;
 
 Logger * mainLog;
 
+// Function declariations
+
+int newSocket(int portno);
+
+void waitForConnection(int socket, int sockPort);
+
+void startNode(int newSock, int port);
+
+/**
+ * Interrupt handler
+ * @param signum signal that caused interrupt
+ */
+void signal_callback_handler(int signum) {
+    if (signum == SIGTERM) {
+        delete mainLog;
+        exit(signum);
+    }
+}
+
+// Utility functions
+void error(const char *msg, Logger * log)
+{
+    perror(msg);
+    log->writeLog(msg);
+    exit(1);
+}
+
 int main(int argc, char *argv[]) {
     int port;
-    mainLog = new Logger(string("mainServer"), true);
+    mainLog = new Logger("mainServer", true);
+
+    signal(SIGTERM, signal_callback_handler);
 
     // Socket port can be provided through command line (Default is 51297)
     // Create new socket @ ConnectionHandler's port (defined by the user or default)
@@ -49,6 +65,11 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
+/**
+ * Open new socket at defined port
+ * @param portno port number of new socket
+ * @return socket
+ */
 int newSocket (int portno) {
     int sockfd;
     struct sockaddr_in serv_addr;
@@ -75,6 +96,11 @@ int newSocket (int portno) {
     return sockfd;
 }
 
+/**
+ * Connection handler for server
+ * @param socket server socket
+ * @param sockPort server port
+ */
 void waitForConnection(int socket, int sockPort) {
     int newSock;
     struct sockaddr_in cli_addr;
@@ -86,12 +112,12 @@ void waitForConnection(int socket, int sockPort) {
 
         // New connection requested
         clilen = sizeof(cli_addr);
-        mainLog->WriteLog("Waiting for connection...\n");
+        mainLog->writeLog("Waiting for connection...");
         newSock = accept(socket,
                          (struct sockaddr *) &cli_addr,
                          &clilen);
 
-        mainLog->WriteLog("Connection requested");
+        mainLog->writeLog("Connection requested");
 
         if (newSock < 0) {
             error("ERROR on accept", mainLog);
@@ -105,8 +131,12 @@ void waitForConnection(int socket, int sockPort) {
     }
 }
 
+/**
+ * Start new node at connection
+ * @param newSock socket of new connection
+ * @param port of new connection
+ */
 void startNode(int newSock, int port) {
     auto newNode = SNode();
     newNode.start(newSock, port);
-    printf("==================================>>>>>> Fatto \n");
 }

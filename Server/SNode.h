@@ -37,6 +37,8 @@ private:
     int sendInstruction(int instrCode, list<string> args = list<string>());
 
     void closeInstruction(int instrSocket);
+
+    void disconnect();
 };
 
 

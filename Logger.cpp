@@ -12,6 +12,11 @@
 using namespace std;
 using namespace chrono;
 
+/**
+ * Logger class that stores in file all prints
+ * REMEMBER: use this class as a pointer and delete manually when no more used. Otherwise log file is not saved on disk.
+ * @param print True if text has to be printed in console
+ */
 Logger::Logger(bool print) {
     LogFile = new fstream();
     // Get current time
@@ -40,6 +45,12 @@ Logger::Logger(bool print) {
     this->print = print;
 }
 
+/**
+ * Logger class that stores in file all prints
+ * REMEMBER: use this class as a pointer and delete manually when no more used. Otherwise log file is not saved on disk.
+ * @FileName custom name of log file
+ * @param print True if text has to be printed in console
+ */
 Logger::Logger(const string &FileName, bool print){
     LogFile = new fstream();
 
@@ -68,7 +79,11 @@ string Logger::getLastMessage() const {
     return string(LastMessage);
 }
 
-void Logger::WriteLog(const string& ToWrite) {
+/**
+ * Write stuff to log/console
+ * @param ToWrite string to write
+ */
+void Logger::writeLog(const string &ToWrite) {
     LastMessage.assign(ToWrite);
 
     // Get current time
@@ -79,7 +94,7 @@ void Logger::WriteLog(const string& ToWrite) {
 
     string toWrite;
     toWrite.assign("[").append(FormattedTime).append("]: ").append(ToWrite).append("\n");
-    LogFile->write(toWrite.data(), sizeof(toWrite.data()));
+    LogFile->write(toWrite.data(), toWrite.length());
 
     if (print) printf("[%s]: %s\n", FormattedTime.data(), ToWrite.data());
 }

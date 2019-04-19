@@ -30,12 +30,6 @@ private:
 
     std::map<int, string> execNames;
 
-    void bkgSubtraction();
-
-    void identifyObjects();
-
-    void trackObject();
-
     void sendMessage(int sockfd, int cod);
 
     void error(const char * msg);
