@@ -18,7 +18,7 @@ private:
 
     string FileName;
 
-    FILE * LogFile;
+    fstream * LogFile;
 
     bool print;
 public:
@@ -29,7 +29,7 @@ public:
 
     string getLastMessage() const;
 
-    void WriteLog(string ToWrite);
+    void WriteLog(const string& ToWrite);
 
     ~Logger();
 };

@@ -13,7 +13,7 @@ class SNode {
 
     int currPort;
 
-    //Logger log;
+    Logger log;
 
     vector<int> instructions;
 

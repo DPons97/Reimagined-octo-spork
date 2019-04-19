@@ -13,6 +13,7 @@ using namespace std;
 using namespace chrono;
 
 Logger::Logger(bool print) {
+    LogFile = new fstream();
     // Get current time
     auto CurrentTime = system_clock::to_time_t(system_clock::now());
 
@@ -34,12 +35,14 @@ Logger::Logger(bool print) {
     } else closedir(LogDir);
 
     // Open log file
-    LogFile = fopen(FileName.data(), "w+");
+    LogFile->open(FileName.data(), ifstream::out);
 
     this->print = print;
 }
 
 Logger::Logger(const string &FileName, bool print){
+    LogFile = new fstream();
+
     this->FileName.assign("Logs/");
     this->FileName.append(FileName).append(".Log");
 
@@ -57,7 +60,7 @@ Logger::Logger(const string &FileName, bool print){
 
 
     // Open log file
-    LogFile = fopen(this->FileName.data(), "w+");
+    LogFile->open(this->FileName.data(), ifstream::out);
     this->print = print;
 }
 
@@ -65,7 +68,7 @@ string Logger::getLastMessage() const {
     return string(LastMessage);
 }
 
-void Logger::WriteLog(string ToWrite) {
+void Logger::WriteLog(const string& ToWrite) {
     LastMessage.assign(ToWrite);
 
     // Get current time
@@ -74,12 +77,13 @@ void Logger::WriteLog(string ToWrite) {
     auto FormattedTime = string(std::ctime(&CurrentTime));
     FormattedTime.erase(FormattedTime.end()-1, FormattedTime.end());
 
-    fprintf(LogFile, "[%s]: %s\n", FormattedTime.data(), ToWrite.data());
+    string toWrite;
+    toWrite.assign("[").append(FormattedTime).append("]: ").append(ToWrite).append("\n");
+    LogFile->write(toWrite.data(), sizeof(toWrite.data()));
 
     if (print) printf("[%s]: %s\n", FormattedTime.data(), ToWrite.data());
-    fflush(LogFile);
 }
 
 Logger::~Logger() {
-    fclose(LogFile);
+    if (LogFile->is_open()) LogFile->close();
 }
