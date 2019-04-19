@@ -20,6 +20,8 @@ int newSocket(int portno);
 
 void waitForConnection(int socket, int sockPort);
 
+void startNode(int newSock, int port);
+
 // Utility functions
 void error(const char *msg, Logger * log)
 {
@@ -80,7 +82,7 @@ void waitForConnection(int socket, int sockPort) {
 
     while (true) {
         // Listening to new connection
-        listen(socket,5);
+        listen(socket, 5);
 
         // New connection requested
         clilen = sizeof(cli_addr);
@@ -95,9 +97,16 @@ void waitForConnection(int socket, int sockPort) {
             error("ERROR on accept", mainLog);
             break;
         } else {
-            auto newNode = new SNode();
+            // auto newNode = new SNode();
             // Create new Node object as a thread
-            new thread(&SNode::start, std::ref(newNode), newSock, sockPort);
+            thread * newThread = new thread(&startNode, newSock, sockPort);
+            newThread->detach();
         }
     }
+}
+
+void startNode(int newSock, int port) {
+    auto newNode = SNode();
+    newNode.start(newSock, port);
+    printf("==================================>>>>>> Fatto \n");
 }

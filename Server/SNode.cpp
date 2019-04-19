@@ -15,9 +15,9 @@
 void SNode::start(int nodeSocket, int nodePort){
     this->currSocket = nodeSocket;
     this->currPort = nodePort;
-    log = Logger(true);
+    //log = Logger(true);
 
-    log.WriteLog(string("[").append(toString()).append("] New node created"));
+    //log.WriteLog(string("[").append(toString()).append("] New node created"));
 
     int answer, i;
 
@@ -31,6 +31,7 @@ void SNode::start(int nodeSocket, int nodePort){
         i++;
     } while (i < 4); //&& answer == (i - 1 + 10));
 
+    printf("Sending disconnection message\n");
     int discSock = sendMessage(0);
 }
 
@@ -46,13 +47,12 @@ int SNode::sendInstruction(int instrCode, list<string> args) {// Send instructio
     // Find first free port
     int assignedPort = currPort + 1;
 
-    //instrMutex.lock();
     auto it = instructions.begin();
     while (it != instructions.end() && (*it) != -1) {
         assignedPort++;
         it++;
     }
-    log.WriteLog(string("Found new port: ").append(to_string(assignedPort)));
+    //log.WriteLog(string("Found new port: ").append(to_string(assignedPort)));
 
     // Establish instruction connection at new port
     int sockfd, newSock;
@@ -61,7 +61,15 @@ int SNode::sendInstruction(int instrCode, list<string> args) {// Send instructio
 
     // Creating new socket
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0) log.WriteLog(string("[").append(toString()).append("] ERROR opening new socket"));
+    if (sockfd < 0) {
+        //log.WriteLog(string("[").append(toString()).append("] ERROR opening new socket"));
+    }
+
+    // Force override old closed sockets
+    int enable = 1;
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
+        //log.WriteLog("setsockopt(SO_REUSEADDR) failed");
+    }
 
     // Setting server address and port no.
     bzero((char *) &serv_addr, sizeof(serv_addr));
@@ -70,12 +78,12 @@ int SNode::sendInstruction(int instrCode, list<string> args) {// Send instructio
     serv_addr.sin_port = htons((uint16_t) assignedPort);
 
     // Binding socket to server address/port
-    if (bind(sockfd, (struct sockaddr *) &serv_addr,
-             sizeof(serv_addr)) < 0)
-        log.WriteLog(string("[").append(toString()).append("] ERROR on binding"));
+    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
+        // log.WriteLog(string("[").append(toString()).append("] ERROR on binding"));
+    }
 
 
-    log.WriteLog(string("[").append(toString()).append("] Ready to connect at new socket"));
+    //log.WriteLog(string("[").append(toString()).append("] Ready to connect at new socket"));
 
     // Merge assigned port to other arguments
     args.push_front(to_string(assignedPort));
@@ -85,17 +93,18 @@ int SNode::sendInstruction(int instrCode, list<string> args) {// Send instructio
 
     // New connection requested
     clilen = sizeof(cli_addr);
-    log.WriteLog(string("[").append(toString()).append("] Connection requested. Accepting..."));
+    //log.WriteLog(string("[").append(toString()).append("] Connection requested. Accepting..."));
     newSock = accept(sockfd,
                      (struct sockaddr *) &cli_addr,
                      &clilen);
+
+    close(sockfd);
+
     if (newSock < 0) {
-        log.WriteLog(string("[").append(toString()).append("] Error on binding new socket"));
-        instrMutex.unlock();
+        //log.WriteLog(string("[").append(toString()).append("] Error on binding new socket"));
         return -1;
     } else {
         instructions.insert(it, newSock);
-        instrMutex.unlock();
         return newSock;
     }
 }
@@ -116,7 +125,7 @@ bool SNode::sendMessage(int instrCode, const list<string> &args) {
 
     n = (int) write(currSocket, message.data(), strlen(message.data()));
     if (n < 0) {
-        log.WriteLog(string("[").append(toString()).append("] ERROR writing to socket"));
+        //log.WriteLog(string("[").append(toString()).append("] ERROR writing to socket"));
         return false;
     }
 
@@ -134,20 +143,24 @@ bool SNode::getAnswerCode(int *outCode, int instrSocket) {
     bzero(answerBuff, 10);
     n = (int) read(instrSocket, answerBuff, sizeof(answerBuff));
     if (n < 0) {
-        log.WriteLog(string("[").append(toString()).append("] ERROR reading answer"));
+        //log.WriteLog(string("[").append(toString()).append("] ERROR reading answer"));
         return false;
     }
 
     *outCode = atoi(answerBuff);
 
+    // TEMPORARY: Close connection on answer received
+    closeInstruction(instrSocket);
+    return true;
+}
+
+void SNode::closeInstruction(int instrSocket) {
     close(instrSocket);
 
-    instrMutex.lock();
-    for (int sock : instructions) {
-        if (sock == instrSocket) sock = -1;
+    for (int i=0; i < instructions.size(); i++) {
+        if (instructions[i] == instrSocket)
+            instructions.at(i) = -1;
     }
-    instrMutex.unlock();
-    return true;
 }
 
 int SNode::getSocket() const {
@@ -163,7 +176,7 @@ const char * SNode::toString() {
  * Send disconnect command to node
  */
 SNode::~SNode() {
-    log.WriteLog(string("[").append(toString()).append("] Disconnecting..."));
+    //log.WriteLog(string("[").append(toString()).append("] Disconnecting..."));
     //sendInstruction(0);
     close(currSocket);
 }

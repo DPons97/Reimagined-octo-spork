@@ -6,18 +6,16 @@
 #define OCTOSPORK_CONNECTION_H
 
 #include "../Logger.h"
-#include <mutex>
+#include <vector>
 
 class SNode {
     int currSocket;
 
     int currPort;
 
-    Logger log;
+    //Logger log;
 
-    list<int> instructions;
-
-    std::mutex instrMutex;
+    vector<int> instructions;
 
 public:
     void start(int nodeSocket, int nodePort);
@@ -37,6 +35,8 @@ private:
     bool getAnswerCode(int *outCode, int instrSocket);
 
     int sendInstruction(int instrCode, list<string> args = list<string>());
+
+    void closeInstruction(int instrSocket);
 };
 
 
