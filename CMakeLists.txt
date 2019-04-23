@@ -21,7 +21,6 @@ add_executable(OctoSporkClient Client/main.cpp ${CLIENT_SOURCES} Client/CNode.cp
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 find_package( OpenCV REQUIRED )
-target_link_libraries( OctoSporkClient ${OpenCV_LIBS} )
 
 # Server executable
 file(GLOB SERVER_SOURCES
@@ -55,9 +54,9 @@ target_link_libraries(${PROJ_NAME} ${DARKNET_LIB_NAME})
 
 # Server executable
 file(GLOB EXEC_SOURCES
-        "Executables/*.h"
-        "Executables/*.cpp"
         "*.h"
         "*.cpp"
         )
-add_executable(OctoSporkExecs Executables/main.cpp ${EXEC_SOURCES} Executables/main.cpp)
+add_executable(OctoSporkExecs Executables/bkgndSubtraction.cpp ${EXEC_SOURCES})
+target_link_libraries( OctoSporkExecs ${OpenCV_LIBS} )
+
