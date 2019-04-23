@@ -80,19 +80,22 @@ void CNode::listen() {
         msg = string(buffer);
         sep_msg = split(msg, "-");
         cod = atoi(sep_msg[0].c_str());
-        
-        deadPid = waitpid(-1, &status,WNOHANG);
-        printf("waitpid res: %d\n", deadPid);
-        if (deadPid > 0) cleanChild(findChild(deadPid));
 
+        do {
+            deadPid = waitpid(-1, &status, WNOHANG);
+            printf("waitpid res: %d\n", deadPid);
+            if (deadPid > 0) cleanChild(findChild(deadPid));
+        } while(deadPid > 0);
         if (cod == 0) {
             int termCod = atoi(sep_msg[1].c_str());
             if(termCod == 0){ // if termCod is 0 kill all and exit
                 // end connection and stop
-                for(auto &child:children){
-                    killChild(child);
-                }
                 log->writeLog("EXIT MESSAGE RECEIVED");
+                for(auto &child:children){
+                    kill(child->pid, SIGTERM);
+                    close(child->socket);
+                    free(child);
+                }
                 log->~Logger();
                 exit(0);
             }
@@ -228,7 +231,8 @@ child* CNode::findChild(int pid) {
  * @param toKill child to kill
  */
 void CNode::killChild(child * toKill){
-    if(toKill == nullptr) return;
+    int status;
+    if(toKill == nullptr || waitpid(toKill->pid, &status, WNOHANG)!=0) return;
     log->writeLog(string("killing child with pid ").append(to_string(toKill->pid)));
     kill(toKill->pid, SIGTERM);
     cleanChild(toKill);
