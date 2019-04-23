@@ -43,7 +43,7 @@ set(DARKNET_LIB_NAME libdarknet)
 
 # Link Darknet library' include folder.
 include_directories(${DARKNET_PATH}/include)
-
+include_directories("spdlog")
 # Define Darknet library' shared library.
 add_library(${DARKNET_LIB_NAME} SHARED IMPORTED)
 

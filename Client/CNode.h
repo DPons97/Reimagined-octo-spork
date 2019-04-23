@@ -7,8 +7,14 @@
 #include "../Logger.h"
 #include <vector>
 #include <map>
+#include <list>
 
 using namespace std;
+
+typedef struct {
+    int pid;
+    int socket;
+} child;
 
 class CNode {
 
@@ -28,7 +34,9 @@ private:
 
     char * hostname;
 
-    std::map<int, string> execNames;
+    list<child*> children;
+
+    map<int, string> execNames;
 
     void sendMessage(int sockfd, int cod);
 
@@ -37,6 +45,14 @@ private:
     vector<string> split(string str,string sep);
 
     vector<char *> split_char(string str,string sep);
+
+    int newSocket(int port);
+
+    child* findChild(int pid);
+
+    void killChild(child * toKill);
+
+    void cleanChild(child * toKill);
 
     void readCodeFile();
 
