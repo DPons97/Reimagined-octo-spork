@@ -42,7 +42,7 @@ private:
 
     void error(const char * msg);
 
-    vector<string> split(string str,string sep);
+    vector<string> split(const string& str,const string& sep);
 
     vector<char *> split_char(string str,string sep);
 

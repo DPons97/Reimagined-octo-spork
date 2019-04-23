@@ -29,9 +29,6 @@
  */
 CNode::CNode(int portno, char * hostname) {
     // start connection and create Logger object
-    struct sockaddr_in serv_addr;
-    struct hostent *server;
-
     log = new Logger("nodeClient", true);
     execNames = map<int, string>();
     this->hostname = hostname;
@@ -45,14 +42,14 @@ CNode::CNode(int portno, char * hostname) {
  * @param sockfd server socket
  * @param cod code to send
  */
-void CNode::sendMessage(int sockfd, int cod) {
+void CNode::sendMessage(int socket, int cod) {
     // send a message with the passed code to the main node/server node
     int n_write;
     char buffer[256];
     //printf("Please enter the message: ");
     bzero(buffer, 256);
     snprintf(buffer, sizeof(buffer), "%d", cod);
-    n_write = write(sockfd, buffer, strlen(buffer));
+    n_write = write(socket, buffer, strlen(buffer));
     if (n_write < 0)
         error("ERROR writing to socket");
 
@@ -69,9 +66,9 @@ void CNode::listen() {
     char buffer[256];
     int childPid, deadPid;
     int port;
-    std::string msg;
-    std::vector<std::string> sep_msg;
-    std::vector<char *> args;
+    string msg;
+    vector<string> sep_msg;
+    vector<char *> args;
 
     while(true){
         bzero(buffer, 256);
@@ -86,7 +83,7 @@ void CNode::listen() {
         
         deadPid = waitpid(-1, &status,WNOHANG);
         printf("waitpid res: %d\n", deadPid);
-        if (deadPid)cleanChild(findChild(deadPid));
+        if (deadPid > 0) cleanChild(findChild(deadPid));
 
         if (cod == 0) {
             int termCod = atoi(sep_msg[1].c_str());
@@ -108,9 +105,9 @@ void CNode::listen() {
                 port = atoi(args[0]);
                 args.erase(args.begin());
             }
-            args.push_back(NULL);
+            args.push_back(nullptr);
 
-            int newSock =newSocket(port);
+            int newSock = newSocket(port);
             char* arg1 = (char *) to_string(newSock).c_str();
             args.insert(args.begin(), arg1);
 
@@ -122,7 +119,7 @@ void CNode::listen() {
                 char * name = const_cast<char *>(execNames[cod].data());
                 args.insert(args.begin(), name);
                 for (auto arg : args) {
-                    if(arg!= NULL) log->writeLog(arg);
+                    if(arg!= nullptr) log->writeLog(arg);
                 }
 
                 // Build exec path
@@ -147,14 +144,14 @@ void CNode::listen() {
  * @param sep separator string
  * @return vector of split string
  */
-std::vector<std::string> CNode::split(std::string str,std::string sep){
+vector<string> CNode::split(const string& str,const string& sep){
     char* cstr=const_cast<char*>(str.c_str());
     char* current;
-    std::vector<std::string> arr;
+    vector<string> arr;
     current=strtok(cstr,sep.c_str());
-    while(current!=NULL){
-        arr.push_back(current);
-        current=strtok(NULL,sep.c_str());
+    while(current!=nullptr){
+        arr.emplace_back(current);
+        current=strtok(nullptr,sep.c_str());
     }
     return arr;
 }
@@ -165,14 +162,14 @@ std::vector<std::string> CNode::split(std::string str,std::string sep){
  * @param sep separator string
  * @return vector of split arrays of char
  */
-std::vector<char *> CNode::split_char(std::string str,std::string sep){
+vector<char *> CNode::split_char(string str,string sep){
     char* cstr=const_cast<char*>(str.c_str());
     char* current;
-    std::vector<char *> arr;
+    vector<char *> arr;
     current=strtok(cstr,sep.c_str());
-    while(current!=NULL){
+    while(current!=nullptr){
         arr.push_back(current);
-        current=strtok(NULL,sep.c_str());
+        current=strtok(nullptr,sep.c_str());
     }
     return arr;
 }
@@ -186,7 +183,7 @@ void CNode::readCodeFile() {
     ifstream execFile;
     int execQty = 0;
 
-    execFile.open("../Executables/executables.txt", std::ifstream::in);
+    execFile.open("../Executables/executables.txt", ifstream::in);
     // Read executables quantity
     execFile >> execQty;
     if (execQty == 0) return;
@@ -194,14 +191,14 @@ void CNode::readCodeFile() {
     // Read executables names from file
     string buffer;
     vector<string> sep_buffer;
-    std::getline(execFile, buffer);
+    getline(execFile, buffer);
     for (int i = 0; i < execQty; ++i) {
         int code = -1;
-        std::getline(execFile, buffer);
+        getline(execFile, buffer);
 
         // Split string in instruction code and executable name
         sep_buffer = split(buffer, ":");
-        std::sscanf(sep_buffer[0].data(), "%d", &code);
+        sscanf(sep_buffer[0].data(), "%d", &code);
 
         execNames[code] = sep_buffer[1];
     }
@@ -213,7 +210,7 @@ void CNode::readCodeFile() {
  * @return child with given pid, nullptr if not found
  */
 child* CNode::findChild(int pid) {
-    log->writeLog(string("looking for child with pid").append(to_string(pid)));
+    log->writeLog(string("looking for child with pid ").append(to_string(pid)));
     for(auto &child: children){
         if(child->pid == pid) {
             log->writeLog(string("child with pid").append(to_string(pid).append("found")));
@@ -221,7 +218,7 @@ child* CNode::findChild(int pid) {
         }
     }
     log->writeLog(string("child with pid").append(to_string(pid).append("NOT found")));
-    return NULL;
+    return nullptr;
 }
 
 /**
@@ -251,11 +248,11 @@ int CNode::newSocket(int port){
     struct sockaddr_in serv_addr;
     struct hostent *server;
     sleep(1);
-    int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd < 0)
+    int newSock = socket(AF_INET, SOCK_STREAM, 0);
+    if (newSock < 0)
         error("ERROR opening socket");
     server = gethostbyname(hostname);
-    if (server == NULL) {
+    if (server == nullptr) {
         fprintf(stderr,"ERROR, no such host\n");
         exit(0);
     }
@@ -267,10 +264,10 @@ int CNode::newSocket(int port){
           server->h_length);
     serv_addr.sin_port = htons(portno);
     log->writeLog(string("Trying to connect to ").append(hostname));
-    if (connect(sockfd,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
+    if (connect(newSock,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0)
         error("ERROR connecting");
     log->writeLog("Connected");
-    return sockfd;
+    return newSock;
 }
 
 /**

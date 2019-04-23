@@ -50,7 +50,6 @@ void SNode::start(int nodeSocket, int nodePort){
  * @return new socket if sending was successful, -1 if there was an error (see log for more info)
  */
 int SNode::startInstruction(int instrCode, list<string> args) {
-    // Send instruction to client
     // Find first free port
     int assignedPort = currPort + 1;
 
