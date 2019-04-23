@@ -129,10 +129,11 @@ void CNode::listen() {
                 execvp(path.data(), args.data());
 
             } else {
-                child newChild;
-                newChild.pid = childPid;
-                newChild.socket = newSock;
-                children.push_back(&newChild);
+                auto newChild = (child *) malloc(sizeof(child));
+                newChild->pid = childPid;
+                log->writeLog(string("created child with PID ").append(to_string(childPid)));
+                newChild->socket = newSock;
+                children.push_back(newChild);
             }
 
         } else log->writeLog("Unknown cod");
@@ -242,6 +243,7 @@ void CNode::cleanChild(child * toClean){
     log->writeLog(string("cleaning child with pid ").append(to_string(toClean->pid)));
     close(toClean->socket);
     children.remove(toClean);
+    free(toClean);
 }
 
 int CNode::newSocket(int port){
