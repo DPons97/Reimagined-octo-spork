@@ -39,7 +39,7 @@ private:
 
     int startInstruction(int instrCode, list<string> args = list<string>());
 
-    void disconnect(int instrPid = -1);
+    void disconnect(int instrPid = 0);
 };
 
 

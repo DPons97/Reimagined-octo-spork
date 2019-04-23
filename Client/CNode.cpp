@@ -87,7 +87,7 @@ void CNode::listen() {
 
         if (cod == 0) {
             int termCod = atoi(sep_msg[1].c_str());
-            if(termCod == -1){ // if termCod is -1 kill all and exit
+            if(termCod == 0){ // if termCod is 0 kill all and exit
                 // end connection and stop
                 for(auto &child:children){
                     killChild(child);
@@ -214,11 +214,11 @@ child* CNode::findChild(int pid) {
     log->writeLog(string("looking for child with pid ").append(to_string(pid)));
     for(auto &child: children){
         if(child->pid == pid) {
-            log->writeLog(string("child with pid").append(to_string(pid).append("found")));
+            log->writeLog(string("child with pid ").append(to_string(pid).append(" found")));
             return child;
         }
     }
-    log->writeLog(string("child with pid").append(to_string(pid).append("NOT found")));
+    log->writeLog(string("child with pid ").append(to_string(pid).append(" NOT found")));
     return nullptr;
 }
 
@@ -228,7 +228,7 @@ child* CNode::findChild(int pid) {
  */
 void CNode::killChild(child * toKill){
     if(toKill == nullptr) return;
-    log->writeLog(string("killing child with pid").append(to_string(toKill->pid)));
+    log->writeLog(string("killing child with pid ").append(to_string(toKill->pid)));
     kill(toKill->pid, SIGTERM);
     cleanChild(toKill);
 }
@@ -239,7 +239,7 @@ void CNode::killChild(child * toKill){
  */
 void CNode::cleanChild(child * toClean){
     if(toClean == nullptr) return;
-    log->writeLog(string("cleaning child with pid").append(to_string(toClean->pid)));
+    log->writeLog(string("cleaning child with pid ").append(to_string(toClean->pid)));
     close(toClean->socket);
     children.remove(toClean);
 }
