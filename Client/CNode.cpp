@@ -111,7 +111,7 @@ void CNode::listen() {
         
         deadPid = waitpid(-1, &status,WNOHANG);
         printf("waitpid res: %d\n", deadPid);
-        if (!deadPid)pids.remove(deadPid);
+        if (deadPid)pids.remove(deadPid);
 
         if (cod == 0) {
 

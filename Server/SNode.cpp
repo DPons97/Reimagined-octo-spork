@@ -24,17 +24,18 @@ void SNode::start(int nodeSocket, int nodePort){
     log = new Logger("nodeServer", true);
     log->writeLog(string("[").append(toString()).append("] New node created"));
 
-    int answer, i;
+    string answer;
+    int i;
 
     i = 1;
     do {
-        int instrSock = sendInstruction(i);
+        int instrSock = startInstruction(i);
         printf("Sending %d\n", i);
 
-        getAnswerCode(&answer, instrSock);
-        printf("Received %d\n", answer);
+        getAnswerCode(answer, instrSock);
+        printf("Received %s\n", answer.data());
         i++;
-    } while (i < 4); //&& answer == (i - 1 + 10));
+    } while (i < 4);
 }
 
 /**
@@ -48,13 +49,13 @@ void SNode::start(int nodeSocket, int nodePort){
  * @param args other arguments to send
  * @return new socket if sending was successful, -1 if there was an error (see log for more info)
  */
-int SNode::sendInstruction(int instrCode, list<string> args) {
+int SNode::startInstruction(int instrCode, list<string> args) {
     // Send instruction to client
     // Find first free port
     int assignedPort = currPort + 1;
 
     auto it = instructions.begin();
-    while (it != instructions.end() && (*it) != -1) {
+    while (it != instructions.end() && it->second != -1) {
         assignedPort++;
         it++;
     }
@@ -110,7 +111,13 @@ int SNode::sendInstruction(int instrCode, list<string> args) {
         log->writeLog(string("[").append(toString()).append("] Error on binding new socket"));
         return -1;
     } else {
-        instructions.insert(it, newSock);
+        string answer;
+
+        // Get answer from client including pid
+        getAnswerCode(answer, newSock);
+        int clientPid = atoi(answer.data());
+
+        instructions.insert(it, pair<int, int>(clientPid, newSock));
         return newSock;
     }
 }
@@ -150,7 +157,7 @@ bool SNode::sendMessage(int instrCode, const list<string> &args) {
  * @param instrSocket socket from the answer is expected
  * @return True if answer is correctly read
  */
-bool SNode::getAnswerCode(int *outCode, int instrSocket) {
+bool SNode::getAnswerCode(string& outCode, int instrSocket) {
     int n;
     char answerBuff[10];
 
@@ -161,37 +168,34 @@ bool SNode::getAnswerCode(int *outCode, int instrSocket) {
         return false;
     }
 
-    *outCode = atoi(answerBuff);
-
-    // TEMPORARY: Close connection on answer received
-    closeInstruction(instrSocket);
+    outCode = string(answerBuff);
     return true;
 }
 
 /**
  * Close connection with defined node's process, and remove instrSocket from memorized instructions
- * @param instrSocket to be closed
+ * @param instrPid to be closed. Leave empty (or -1) to close all intstructions
  */
-void SNode::closeInstruction(int instrSocket) {
-    close(instrSocket);
+void SNode::disconnect(int instrPid) {
+    // Send pid to close. -1 if all connections have to be closed
+    list<string> toClose;
+    toClose.push_back(to_string(instrPid));
+    sendMessage(0,toClose);
 
-    for (int i=0; i < instructions.size(); i++) {
-        if (instructions[i] == instrSocket)
-            instructions.at(i) = -1;
+    if (instrPid != -1) {
+        close(instructions[instrPid]);
+
+        for (auto & instruction : instructions) {
+            if (instruction.first == instrPid)
+                instruction.second = -1;
+        }
+    } else {
+        // Close all instruction connections left
+        for (auto & instr : instructions) {
+            close(instr.second);
+            instr.second = -1;
+        }
     }
-}
-
-/**
- * Disconnect node from server and force close all this node's connections
- */
-void SNode::disconnect() {
-    // Close all instruction connections left
-    for (int instr : instructions) {
-        closeInstruction(instr);
-    }
-
-    // Disconnect node
-    sendMessage(0);
 }
 
 /**

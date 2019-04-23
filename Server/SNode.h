@@ -7,6 +7,8 @@
 
 #include "../Logger.h"
 #include <vector>
+#include <map>
+
 
 class SNode {
     int currSocket;
@@ -15,7 +17,8 @@ class SNode {
 
     Logger * log;
 
-    vector<int> instructions;
+    // Map of current open instructions: int PID, int SOCKET
+    map<int, int> instructions;
 
 public:
     void start(int nodeSocket, int nodePort);
@@ -32,13 +35,11 @@ protected:
 private:
     bool sendMessage(int instrCode, const list<string> &args = list<string>());
 
-    bool getAnswerCode(int *outCode, int instrSocket);
+    bool getAnswerCode(string& outCode, int instrSocket);
 
-    int sendInstruction(int instrCode, list<string> args = list<string>());
+    int startInstruction(int instrCode, list<string> args = list<string>());
 
-    void closeInstruction(int instrSocket);
-
-    void disconnect();
+    void disconnect(int instrPid = -1);
 };
 
 
