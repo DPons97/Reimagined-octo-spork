@@ -125,6 +125,7 @@ void CNode::listen() {
                 // Build exec path
                 string path = "../Executables/";
                 path.append(execNames[cod]);
+                write(newSock, to_string(getpid()).data(), to_string(getpid()).size());
                 execvp(path.data(), args.data());
 
             } else {
