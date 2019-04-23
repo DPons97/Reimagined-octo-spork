@@ -8,7 +8,12 @@
 #include "../Logger.h"
 #include <vector>
 #include <map>
+#include <list>
+#include "DarknetCalculator.h"
 
+#include <opencv2/core/core.hpp>
+#include <opencv2/core/hal/interface.h>
+#include <opencv2/highgui/highgui.hpp>
 
 class SNode {
     int currSocket;
@@ -33,13 +38,17 @@ protected:
 
 
 private:
-    bool sendMessage(int instrCode, const list<string> &args = list<string>());
+    bool sendMessage(int instrCode, const std::list<string> &args = std::list<string>());
 
     bool getAnswerCode(string& outCode, int instrSocket);
 
-    int startInstruction(int instrCode, list<string> args = list<string>());
+    int startInstruction(int instrCode, std::list<string> args = std::list<string>());
+
+    void backgroundSubtraction();
 
     void disconnect(int instrPid = 0);
+
+    cv::Mat getAnswerImg(int bkgSocket) const;
 };
 
 
