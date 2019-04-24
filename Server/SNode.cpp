@@ -1,16 +1,16 @@
 //
 // Created by dpons on 3/24/19.
 //
-
 #include <strings.h>
 #include <cstdio>
 #include <cstring>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <netinet/in.h>
-#include <list>
-#include "SNode.h"
+#include <thread>
 
+#include "SNode.h"
 
 /**
  *  Represents a single node
@@ -24,18 +24,8 @@ void SNode::start(int nodeSocket, int nodePort){
     log = new Logger("nodeServer", true);
     log->writeLog(string("[").append(toString()).append("] New node created"));
 
-    string answer;
-    int i;
-
-    i = 1;
-    do {
-        int instrSock = startInstruction(i);
-        printf("Sending %d\n", i);
-
-        getAnswerCode(answer, instrSock);
-        printf("Received %s\n", answer.data());
-        i++;
-    } while (i < 4);
+    thread * newThread = new thread(&SNode::backgroundSubtraction, this);
+    newThread->detach();
 }
 
 /**
@@ -49,7 +39,7 @@ void SNode::start(int nodeSocket, int nodePort){
  * @param args other arguments to send
  * @return new socket if sending was successful, -1 if there was an error (see log for more info)
  */
-int SNode::startInstruction(int instrCode, list<string> args) {
+int SNode::startInstruction(int instrCode, std::list<string> args) {
     // Find first free port
     int assignedPort = currPort + 1;
 
@@ -127,7 +117,7 @@ int SNode::startInstruction(int instrCode, list<string> args) {
  * @param args
  * @return True if message has been sent successfully
  */
-bool SNode::sendMessage(int instrCode, const list<string> &args) {
+bool SNode::sendMessage(int instrCode, const std::list<string> &args) {
     int n;
     string message;
 
@@ -177,7 +167,7 @@ bool SNode::getAnswerCode(string& outCode, int instrSocket) {
  */
 void SNode::disconnect(int instrPid) {
     // Send pid to close. -1 if all connections have to be closed
-    list<string> toClose;
+    std::list<string> toClose;
     toClose.push_back(to_string(instrPid));
     sendMessage(0,toClose);
 
@@ -221,4 +211,88 @@ SNode::~SNode() {
     disconnect();
     close(currSocket);
     delete log;
+}
+
+/**
+ * Manage background subtraction operations
+ */
+void SNode::backgroundSubtraction() {
+    while(true) {
+        float threshold = 0.5;
+        // Send start message
+        int bkgSocket = startInstruction(1);
+
+        // Wait for relevant image
+        cv::Mat image = getAnswerImg(bkgSocket);
+
+        // Do YOLO stuff and get results
+        DarknetCalculator yoloCalculator = DarknetCalculator(threshold);
+
+        // Analyze results and start tracking if something is found
+        int num_boxes = 0;
+        detection * result = yoloCalculator.detect(image, &num_boxes);
+
+        if (num_boxes > 0) {
+            // Found something
+            vector<string> labels = yoloCalculator.getLabels();
+
+            // Iterate over predicted classes and print information.
+            for (int8_t i = 0; i < num_boxes; i++) {
+                for (int j = 0; j < labels.size(); j++) {
+                    if (result[i].prob[j] > threshold) {
+                        // More information is in each detections[i] item.
+                        log->writeLog(labels[j].append(" ").append(to_string(result[i].prob[j] * 100)));
+                    }
+                }
+            }
+
+            // TODO: Start tracking
+        }
+    }
+}
+
+
+/**
+ * Wait for an image to arrive from client.
+ * @param bkgSocket
+ * @return Mat that contains the image
+ */
+cv::Mat SNode::getAnswerImg(int bkgSocket) const {
+    int n;
+    vector<unsigned char> vectBuff;
+    char cmdBuff[10];
+
+    // Wait for send message
+    do {
+        n = (int) read(bkgSocket, cmdBuff, 10);
+        if (n < 0) log->writeLog("ERROR reading command message");
+    } while (strcmp(cmdBuff, "imgsend") != 0);
+
+    // Receive Mat cols and rows
+    n = (int) read(bkgSocket, cmdBuff, 5);
+    int cols = atoi(cmdBuff);
+
+    n = (int) read(bkgSocket, cmdBuff, 5);
+    int rows = atoi(cmdBuff);
+
+    cv::Mat inMat = cv::Mat::zeros(rows, cols, CV_8UC3);
+
+    int imgSize = (int) (inMat.total() * inMat.elemSize());
+    uchar buffer[imgSize];
+
+    static const string kWinName = "Sending images over the SPAAAAAAACE!";
+    namedWindow(kWinName, cv::WINDOW_NORMAL);
+
+    n = 0;
+    bzero(buffer, imgSize);
+    for (int i = 0; i < imgSize; i += n) {
+        n = (int) recv(bkgSocket, buffer + i, imgSize - i, 0);
+        if (n < 0) log->writeLog("ERROR reading from socket");
+
+    }
+
+    inMat.data = buffer;
+    imshow(kWinName, inMat);
+    cv::waitKey(0);
+    return inMat;
 }

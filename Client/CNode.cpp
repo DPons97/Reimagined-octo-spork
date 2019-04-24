@@ -138,7 +138,6 @@ void CNode::listen() {
                 newChild->socket = newSock;
                 children.push_back(newChild);
             }
-
         } else log->writeLog("Unknown cod");
     }
 }
