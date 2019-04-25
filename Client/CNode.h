@@ -9,7 +9,6 @@
 #include <map>
 #include <list>
 
-using namespace std;
 
 typedef struct {
     int pid;

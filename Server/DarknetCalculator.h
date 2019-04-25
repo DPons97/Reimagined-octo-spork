@@ -5,8 +5,7 @@
 #ifndef OCTOSPORK_DARKNETCALCULATOR_H
 #define OCTOSPORK_DARKNETCALCULATOR_H
 
-
-#include <darknet.h>
+#include "darknet.h"
 #include <opencv2/core/mat.hpp>
 
 class DarknetCalculator {
@@ -22,13 +21,13 @@ public:
 
 private:
     // Path to configuration file.
-    static char * cfg_file;
+    char * cfg_file;
 
     // Path to weight file.
-    static char * weight_file;
+    char * weight_file;
 
     // Path to a file describing classes names.
-    static char * names_file;
+    char * names_file;
 
     // Pointer to loaded darknet network
     network * net;

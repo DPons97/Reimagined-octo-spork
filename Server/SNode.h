@@ -8,7 +8,6 @@
 #include "../Logger.h"
 #include <vector>
 #include <map>
-#include <list>
 #include "DarknetCalculator.h"
 
 #include <opencv2/core/core.hpp>
@@ -23,7 +22,7 @@ class SNode {
     Logger * log;
 
     // Map of current open instructions: int PID, int SOCKET
-    map<int, int> instructions;
+    std::map<int, int> instructions;
 
 public:
     void start(int nodeSocket, int nodePort);
@@ -38,17 +37,17 @@ protected:
 
 
 private:
-    bool sendMessage(int instrCode, const std::list<string> &args = std::list<string>());
+    bool sendMessage(int instrCode, const std::vector<string> &args = std::vector<string>());
 
     bool getAnswerCode(string& outCode, int instrSocket);
 
-    int startInstruction(int instrCode, std::list<string> args = std::list<string>());
+    int startInstruction(int instrCode, std::vector<string> args = std::vector<string>());
 
     void backgroundSubtraction();
 
     void disconnect(int instrPid = 0);
 
-    cv::Mat getAnswerImg(int bkgSocket) const;
+    bool getAnswerImg(int bkgSocket, cv::Mat& outMat) const;
 };
 
 

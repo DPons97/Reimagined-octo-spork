@@ -21,7 +21,8 @@
 #include <opencv2/video.hpp>
 #include <time.h>
 
-#define FRAME_NAME "/home/pitohacapito/Documents/pii/Executables/resources/frames/frame"
+//#define FRAME_NAME "/home/dpons/Documents/Programming/OctoSpork/Executables/resources/frames/frame"
+#define FRAME_NAME "../Executables/resources/frames/frame"
 
 using namespace  cv;
 using namespace std;
@@ -46,7 +47,7 @@ void handler (int signal_number) {
 
 int main(int argc, char *argv[]) {
     sockfd = atoi(argv[1]);
-    mylog = new Logger("bgdSub", true);
+    mylog = new Logger("bkgSub", true);
     mylog->writeLog(string("New background subtraction job on socket").append(to_string(sockfd)));
 
     //create Background Subtractor objects
@@ -57,7 +58,7 @@ int main(int argc, char *argv[]) {
     Scalar value;
     int count = 0;
     while (true) {
-        frame = imread(nextImg().data(), CV_LOAD_IMAGE_COLOR);;
+        frame = imread(nextImg().data(), CV_LOAD_IMAGE_COLOR);
         if (frame.empty()){
             mylog->writeLog("ERROR OPENING FRAME");
             break;

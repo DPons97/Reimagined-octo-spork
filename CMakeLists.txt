@@ -30,7 +30,11 @@ file(GLOB SERVER_SOURCES
         "*.cpp"
         )
 
-add_executable(OctoSporkServer Server/main.cpp ${SERVER_SOURCES} Server/SNode.cpp Server/SNode.h Server/DarknetCalculator.cpp Server/DarknetCalculator.h)
+add_executable(OctoSporkServer Server/main.cpp ${SERVER_SOURCES} Server/SNode.cpp Server/SNode.h Server/DarknetCalculator.cpp Server/DarknetCalculator.h Server/darknet.c Server/darknet.h)
+
+#Include OpenCV
+target_link_libraries( OctoSporkServer ${OpenCV_LIBS} )
+
 # Include Darknet libraries for server
 # Path to Darknet project folder.
 set(DARKNET_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Server/darknet/")
@@ -51,9 +55,6 @@ set_property( TARGET ${DARKNET_LIB_NAME} PROPERTY IMPORTED_LOCATION "${DARKNET_P
 
 # Link all libraries together.
 target_link_libraries(${PROJ_NAME} ${DARKNET_LIB_NAME})
-
-#Include OpenCV
-target_link_libraries( OctoSporkServer ${OpenCV_LIBS} )
 
 # Server executable
 file(GLOB EXEC_SOURCES
