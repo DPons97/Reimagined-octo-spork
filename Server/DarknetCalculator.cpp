@@ -17,6 +17,12 @@ DarknetCalculator::DarknetCalculator(float thresh) : thresh(thresh) {
     cpp_set_batch_network(net, 1);
 }
 
+/**
+ * Start darknet's detection system
+ * @param input image to analyze
+ * @param num_boxes out number of boxes detected
+ * @return detecton infos
+ */
 detection * DarknetCalculator::detect(cv::Mat input, int * num_boxes) {
     // Load image from OpenCV Mat
     int h = input.size().height;
@@ -49,6 +55,9 @@ detection * DarknetCalculator::detect(cv::Mat input, int * num_boxes) {
     return detections;
 }
 
+/**
+ * @return darknet classes' labels
+ */
 std::vector<std::string> DarknetCalculator::getLabels() {
     // Number of classes in "obj.names"
     size_t classes = 0;

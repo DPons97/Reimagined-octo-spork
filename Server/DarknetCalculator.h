@@ -34,7 +34,7 @@ private:
 
     // Define thresholds for predicted class.
     float thresh;
-    float hier_thresh = 0.5;
+    float hier_thresh = 0.6;
 
 };
 

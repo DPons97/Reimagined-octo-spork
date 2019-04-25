@@ -217,17 +217,19 @@ SNode::~SNode() {
  * Manage background subtraction operations
  */
 void SNode::backgroundSubtraction() {
-    float threshold = 0.5;
-    // Send start message
-    int bkgPid = startInstruction(1);
-    int bkgSocket = instructions[bkgPid];
+    float threshold = 0.8;
+    int bkgSocket, bkgPid;
 
     while(true) {
+        // Send start message
+        bkgPid = startInstruction(1);
+        bkgSocket = instructions[bkgPid];
+
         // Wait for relevant image
         cv::Mat image;
 
         if (!getAnswerImg(bkgSocket, image)) {
-            log->writeLog("Error occurred while receiving image. Stopping background subtraction process");
+            log->writeLog("Stopping background subtraction process");
             break;
         }
 
@@ -255,10 +257,11 @@ void SNode::backgroundSubtraction() {
 
             log->writeLog("Found something important! Starting tracking...");
             // TODO: Start tracking
-        }
+
+        } else disconnect(bkgPid);
     }
 
-    // Close process
+    // Stopped video stream or error occurred. Disconnecting last socket
     disconnect(bkgPid);
 }
 
@@ -280,6 +283,11 @@ bool SNode::getAnswerImg(int bkgSocket, cv::Mat& outMat) const {
         n = (int) read(bkgSocket, cmdBuff, 10);
         if (n < 0) {
             log->writeLog("ERROR reading command message");
+            return false;
+        }
+
+        if (strcmp(cmdBuff, "imgstop") != 0) {
+            log->writeLog("Video stream ended from client. Disconnecting...");
             return false;
         }
     } while (strcmp(cmdBuff, "imgsend") != 0);
