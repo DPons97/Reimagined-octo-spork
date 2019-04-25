@@ -359,7 +359,7 @@ layer parse_region(list *options, size_params params)
     layer l = make_region_layer(params.batch, params.w, params.h, num, classes, coords);
     assert(l.outputs == params.inputs);
 
-    l.mainLog = option_find_int_quiet(options, "mainLog", 0);
+    l.log = option_find_int_quiet(options, "log", 0);
     l.sqrt = option_find_int_quiet(options, "sqrt", 0);
 
     l.softmax = option_find_int(options, "softmax", 0);
