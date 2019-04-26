@@ -40,9 +40,10 @@ void error(const char *msg)
 }
 
 string nextImg();
-void sendImage(Mat image);
+bool sendImage(Mat image);
 void initCurrFrame();
 void saveCurrFrame();
+bool waitForConfirm();
 
 void handler (int signal_number) {
     saveCurrFrame();
@@ -65,7 +66,7 @@ int main(int argc, char *argv[]) {
     Scalar value;
     int count = 0;
     while (true) {
-        if (currFrame == 1677) { // video stream is over
+        if (currFrame > 1667) { // video stream is over
             //alert nothing was found and no more frames
             write(sockfd, "imgstop",7);
             saveCurrFrame();
@@ -112,25 +113,36 @@ string nextImg(){
     return to_ret;
 }
 
-void sendImage(Mat image){
+
+/**
+ * Send image to server
+ * @param image to send
+ * @return True if success
+ */
+bool sendImage(Mat image){
     vector<uchar> buff;
     char toLog[100];
 
     //alert image is coming
     write(sockfd, "imgsend",7);
+    if (!waitForConfirm()) return false;
 
     // send width
     char msg[5];
     sprintf(msg, "%d", image.cols);
     sprintf(toLog, "Sending cols: %s\n", msg);
     mylog->writeLog(toLog);
+
     write(sockfd, msg, 5);
+    if (!waitForConfirm()) return false;
 
     // send height
     sprintf(msg, "%d", image.rows);
     sprintf(toLog,"Sending rows: %s\n", msg);
     mylog->writeLog(toLog);
+
     write(sockfd, msg, 5);
+    if (!waitForConfirm()) return false;
 
     // send image
     int  imgSize = image.total()*image.elemSize();
@@ -138,12 +150,14 @@ void sendImage(Mat image){
     mylog->writeLog(toLog);
 
     write(sockfd, image.data, imgSize);
+    return waitForConfirm();
 
-    //namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
-    //imshow( "Display window", image );                   // Show our image inside it.
+    /*
+    namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
+    imshow( "Display window", image );                   // Show our image inside it.
     waitKey(0);
+    */
 
-    return;
 }
 
 void initCurrFrame(){
@@ -156,4 +170,19 @@ void saveCurrFrame(){
     FILE *f = fopen(FRAME_FILE, "w");
     fprintf(f, "%li", currFrame);
     fclose(f);
+}
+
+bool waitForConfirm() {
+    char cmdBuff[10];
+    int n = 0;
+
+    // Wait for response
+    do {
+        n = (int) read(sockfd, cmdBuff, 10);
+        if (n < 0) {
+            mylog->writeLog("ERROR reading confirmation");
+            return false;
+        }
+    } while (strcmp(cmdBuff, "ready") != 0);
+    return true;
 }

@@ -220,6 +220,9 @@ void SNode::backgroundSubtraction() {
     float threshold = 0.8;
     int bkgSocket, bkgPid;
 
+    // Do YOLO stuff and get results
+    DarknetCalculator yoloCalculator = DarknetCalculator(threshold);
+
     while(true) {
         // Send start message
         bkgPid = startInstruction(1);
@@ -232,9 +235,6 @@ void SNode::backgroundSubtraction() {
             log->writeLog("Stopping background subtraction process");
             break;
         }
-
-        // Do YOLO stuff and get results
-        DarknetCalculator yoloCalculator = DarknetCalculator(threshold);
 
         // Analyze results and start tracking if something is found
         int num_boxes = 0;
@@ -290,28 +290,36 @@ bool SNode::getAnswerImg(int bkgSocket, cv::Mat& outMat) const {
             log->writeLog("Video stream ended from client. Disconnecting...");
             return false;
         }
+
+        //log->writeLog(cmdBuff);
     } while (strcmp(cmdBuff, "imgsend") != 0);
+    write(bkgSocket, "ready", 6);
 
     // Receive Mat cols and rows
+    log->writeLog("Reading columns");
     n = (int) read(bkgSocket, cmdBuff, 5);
     if (n < 0) {
         log->writeLog("ERROR reading image columns");
         return false;
     }
     int cols = atoi(cmdBuff);
+    write(bkgSocket, "ready", 6);
 
+    log->writeLog("Reading rows");
     n = (int) read(bkgSocket, cmdBuff, 5);
     if (n < 0) {
         log->writeLog("ERROR reading image rows");
         return false;
     }
     int rows = atoi(cmdBuff);
+    write(bkgSocket, "ready", 6);
 
     cv::Mat inMat = cv::Mat::zeros(rows, cols, CV_8UC3);
 
     int imgSize = (int) (inMat.total() * inMat.elemSize());
     uchar buffer[imgSize];
 
+    log->writeLog("Reading image");
     n = 0;
     bzero(buffer, imgSize);
     for (int i = 0; i < imgSize; i += n) {
@@ -325,12 +333,12 @@ bool SNode::getAnswerImg(int bkgSocket, cv::Mat& outMat) const {
 
     inMat.data = buffer;
 
-
+    /*
     static const std::string kWinName = "Sending images over the SPACE!";
     namedWindow(kWinName, cv::WINDOW_NORMAL);
     imshow(kWinName, inMat);
     cv::waitKey(0);
-
+    */
 
     outMat = inMat;
     return true;
