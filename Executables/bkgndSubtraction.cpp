@@ -178,11 +178,13 @@ bool waitForConfirm() {
 
     // Wait for response
     do {
-        n = (int) read(sockfd, cmdBuff, 10);
-        if (n < 0) {
-            mylog->writeLog("ERROR reading confirmation");
+        bzero(cmdBuff, 10);
+        n = (int) read(sockfd, cmdBuff, 5);
+        if (n <= 0) {
+            mylog->writeLog("ERROR reading confirmation or server disconnection");
             return false;
         }
     } while (strcmp(cmdBuff, "ready") != 0);
+    mylog->writeLog("Server is ready for next message");
     return true;
 }

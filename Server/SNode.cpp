@@ -280,9 +280,10 @@ bool SNode::getAnswerImg(int bkgSocket, cv::Mat& outMat) const {
     log->writeLog("Waiting for image send message to arrive");
     // Wait for send message
     do {
-        n = (int) read(bkgSocket, cmdBuff, 10);
-        if (n < 0) {
-            log->writeLog("ERROR reading command message");
+        bzero(cmdBuff, sizeof(cmdBuff));
+        n = (int) read(bkgSocket, cmdBuff, 7);
+        if (n <= 0) {
+            log->writeLog("ERROR reading command message or node disconnected");
             return false;
         }
 
@@ -291,28 +292,30 @@ bool SNode::getAnswerImg(int bkgSocket, cv::Mat& outMat) const {
             return false;
         }
 
-        //log->writeLog(cmdBuff);
+        log->writeLog(cmdBuff);
     } while (strcmp(cmdBuff, "imgsend") != 0);
-    write(bkgSocket, "ready", 6);
+    write(bkgSocket, "ready", 5);
 
     // Receive Mat cols and rows
     log->writeLog("Reading columns");
+    bzero(cmdBuff, sizeof(cmdBuff));
     n = (int) read(bkgSocket, cmdBuff, 5);
     if (n < 0) {
         log->writeLog("ERROR reading image columns");
         return false;
     }
     int cols = atoi(cmdBuff);
-    write(bkgSocket, "ready", 6);
+    write(bkgSocket, "ready", 5);
 
     log->writeLog("Reading rows");
+    bzero(cmdBuff, sizeof(cmdBuff));
     n = (int) read(bkgSocket, cmdBuff, 5);
     if (n < 0) {
         log->writeLog("ERROR reading image rows");
         return false;
     }
     int rows = atoi(cmdBuff);
-    write(bkgSocket, "ready", 6);
+    write(bkgSocket, "ready", 5);
 
     cv::Mat inMat = cv::Mat::zeros(rows, cols, CV_8UC3);
 
