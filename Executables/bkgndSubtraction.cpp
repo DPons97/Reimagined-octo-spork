@@ -47,12 +47,13 @@ bool waitForConfirm();
 
 void handler (int signal_number) {
     saveCurrFrame();
+    delete mylog;
     exit(signal_number);
 }
 
 int main(int argc, char *argv[]) {
     sockfd = atoi(argv[1]);
-    mylog = new Logger("bkgSub", true);
+    mylog = new Logger(true);
     mylog->writeLog(string("New background subtraction job on socket ").append(to_string(sockfd)));
 
     //create Background Subtractor objects
@@ -94,6 +95,7 @@ int main(int argc, char *argv[]) {
     }
     sendImage(frame);
     saveCurrFrame();
+    delete mylog;
     return 0;
 }
 
@@ -167,9 +169,9 @@ void initCurrFrame(){
 }
 
 void saveCurrFrame(){
-    mylog->writeLog("Saving current frame number");
     FILE *f = fopen(FRAME_FILE, "w");
     fprintf(f, "%ld", currFrame);
+    mylog->writeLog(string("Saving current frame number ").append(to_string(currFrame)));
     fclose(f);
 }
 
