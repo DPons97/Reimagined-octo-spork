@@ -47,6 +47,7 @@ bool waitForConfirm();
 
 void handler (int signal_number) {
     saveCurrFrame();
+    exit(signal_number);
 }
 
 int main(int argc, char *argv[]) {
@@ -150,25 +151,25 @@ bool sendImage(Mat image){
     mylog->writeLog(toLog);
 
     write(sockfd, image.data, imgSize);
-    return waitForConfirm();
 
     /*
     namedWindow( "Display window", WINDOW_AUTOSIZE );// Create a window for display.
     imshow( "Display window", image );                   // Show our image inside it.
     waitKey(0);
-    */
-
+     */
+    return true;
 }
 
 void initCurrFrame(){
     FILE *f = fopen(FRAME_FILE, "r");
-    fscanf(f, "%li", &currFrame);
+    fscanf(f, "%ld", &currFrame);
     fclose(f);
 }
 
 void saveCurrFrame(){
+    mylog->writeLog("Saving current frame number");
     FILE *f = fopen(FRAME_FILE, "w");
-    fprintf(f, "%li", currFrame);
+    fprintf(f, "%ld", currFrame);
     fclose(f);
 }
 
@@ -185,6 +186,6 @@ bool waitForConfirm() {
             return false;
         }
     } while (strcmp(cmdBuff, "ready") != 0);
-    mylog->writeLog("Server is ready for next message");
+    //mylog->writeLog("Server is ready for next message");
     return true;
 }

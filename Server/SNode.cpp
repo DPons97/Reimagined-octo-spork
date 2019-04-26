@@ -258,11 +258,15 @@ void SNode::backgroundSubtraction() {
             log->writeLog("Found something important! Starting tracking...");
             // TODO: Start tracking
 
-        } else disconnect(bkgPid);
+        } else {
+            instructions.erase(bkgPid);
+            close(bkgSocket);
+        }
     }
 
     // Stopped video stream or error occurred. Disconnecting last socket
-
+    instructions.erase(bkgPid);
+    close(bkgSocket);
 }
 
 

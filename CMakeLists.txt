@@ -61,6 +61,6 @@ file(GLOB EXEC_SOURCES
         "*.h"
         "*.cpp"
         )
-add_executable(OctoSporkExecs Executables/bkgndSubtraction.cpp ${EXEC_SOURCES})
-target_link_libraries( OctoSporkExecs ${OpenCV_LIBS} )
+add_executable(bkgSubtraction Executables/bkgndSubtraction.cpp ${EXEC_SOURCES})
+target_link_libraries( bkgSubtraction ${OpenCV_LIBS} )
 
