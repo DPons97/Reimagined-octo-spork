@@ -23,12 +23,13 @@
 
 //#define FRAME_NAME "/home/dpons/Documents/Programming/OctoSpork/Executables/resources/frames/frame"
 #define FRAME_NAME "../Executables/resources/frames/frame"
+#define FRAME_FILE "../Executables/resources/curr_frame.txt"
 
 using namespace  cv;
 using namespace std;
 
 int sockfd;
-long int currFrame = 1;
+long int currFrame;
 clock_t lastTime = 0;
 Logger * mylog;
 
@@ -40,24 +41,36 @@ void error(const char *msg)
 
 string nextImg();
 void sendImage(Mat image);
+void initCurrFrame();
+void saveCurrFrame();
 
 void handler (int signal_number) {
-    close(sockfd);
+    saveCurrFrame();
 }
 
 int main(int argc, char *argv[]) {
     sockfd = atoi(argv[1]);
     mylog = new Logger("bkgSub", true);
-    mylog->writeLog(string("New background subtraction job on socket").append(to_string(sockfd)));
+    mylog->writeLog(string("New background subtraction job on socket ").append(to_string(sockfd)));
 
     //create Background Subtractor objects
     Ptr<BackgroundSubtractor> pBackSub;
     pBackSub = createBackgroundSubtractorMOG2(10, 16, false);
 
+    initCurrFrame();
+    signal(SIGTERM, handler);
+    mylog->writeLog(string("Starting from frame ").append(to_string(currFrame)));
+
     Mat frame, fgMask;
     Scalar value;
     int count = 0;
     while (true) {
+        if (currFrame == 1677) { // video stream is over
+            //alert nothing was found and no more frames
+            write(sockfd, "imgstop",7);
+            saveCurrFrame();
+            return 0;
+        }
         frame = imread(nextImg().data(), CV_LOAD_IMAGE_COLOR);
         if (frame.empty()){
             mylog->writeLog("ERROR OPENING FRAME");
@@ -78,7 +91,7 @@ int main(int argc, char *argv[]) {
         count++;
     }
     sendImage(frame);
-
+    saveCurrFrame();
     return 0;
 }
 
@@ -131,4 +144,16 @@ void sendImage(Mat image){
     waitKey(0);
 
     return;
+}
+
+void initCurrFrame(){
+    FILE *f = fopen(FRAME_FILE, "r");
+    fscanf(f, "%li", &currFrame);
+    fclose(f);
+}
+
+void saveCurrFrame(){
+    FILE *f = fopen(FRAME_FILE, "w");
+    fprintf(f, "%li", currFrame);
+    fclose(f);
 }

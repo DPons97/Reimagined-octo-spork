@@ -18,6 +18,7 @@
 
 #include "CNode.h"
 
+
 /**
  *
  * This class manages client communication and execute requested functions.

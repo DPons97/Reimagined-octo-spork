@@ -262,7 +262,7 @@ void SNode::backgroundSubtraction() {
     }
 
     // Stopped video stream or error occurred. Disconnecting last socket
-    disconnect(bkgPid);
+
 }
 
 
@@ -286,7 +286,7 @@ bool SNode::getAnswerImg(int bkgSocket, cv::Mat& outMat) const {
             return false;
         }
 
-        if (strcmp(cmdBuff, "imgstop") != 0) {
+        if (strcmp(cmdBuff, "imgstop") == 0) {
             log->writeLog("Video stream ended from client. Disconnecting...");
             return false;
         }
@@ -325,12 +325,12 @@ bool SNode::getAnswerImg(int bkgSocket, cv::Mat& outMat) const {
 
     inMat.data = buffer;
 
-    /*
+
     static const std::string kWinName = "Sending images over the SPACE!";
     namedWindow(kWinName, cv::WINDOW_NORMAL);
     imshow(kWinName, inMat);
     cv::waitKey(0);
-    */
+
 
     outMat = inMat;
     return true;
