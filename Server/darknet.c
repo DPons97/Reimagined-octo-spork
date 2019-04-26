@@ -31,3 +31,11 @@ detection *cpp_get_network_boxes(network *net, int w, int h, float thresh, float
 char **cpp_get_labels(char *filename) {
     return get_labels(filename);
 }
+
+void cpp_free_image(image m) {
+    free_image(m);
+}
+
+void cpp_free_detections(detection *dets, int n) {
+    free_detections(dets, n);
+}

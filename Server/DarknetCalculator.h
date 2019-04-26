@@ -18,6 +18,8 @@ public:
 
     std::vector<std::string> getLabels();
 
+    void freeDetection();
+
 
 private:
     // Path to configuration file.
@@ -34,7 +36,11 @@ private:
 
     // Define thresholds for predicted class.
     float thresh;
-    float hier_thresh = 0.6;
+    float hier_thresh = 0.5;
+
+    detection * lastDetection;
+    int lastNumBoxes;
+
 
 };
 

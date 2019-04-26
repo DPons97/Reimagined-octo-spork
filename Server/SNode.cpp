@@ -217,7 +217,7 @@ SNode::~SNode() {
  * Manage background subtraction operations
  */
 void SNode::backgroundSubtraction() {
-    float threshold = 0.8;
+    float threshold = 0.5;
     int bkgSocket, bkgPid;
 
     // Do YOLO stuff and get results
@@ -248,13 +248,14 @@ void SNode::backgroundSubtraction() {
             std::vector<std::string> labels = yoloCalculator.getLabels();
             for (int8_t i = 0; i < num_boxes; i++) {
                 for (int j = 0; j < labels.size(); j++) {
-                    if (result[i].prob[j] > threshold) {
+                    if (result[i].prob[j] >= threshold) {
                         // More information is in each detections[i] item.
                         log->writeLog(string(labels[j]).append(" ").append(std::to_string(result[i].prob[j] * 100)));
                     }
                 }
             }
 
+            cpp_free_detections(result, num_boxes);
             log->writeLog("Found something important! Starting tracking...");
             // TODO: Start tracking
 

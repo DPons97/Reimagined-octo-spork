@@ -560,6 +560,12 @@ detection *cpp_get_network_boxes(network *net, int w, int h, float thresh, float
 
 char **cpp_get_labels(char *filename);
 
+void cpp_free_image(image m);
+
+void cpp_free_detections(detection *dets, int n);
+
+
+
 #ifdef __cplusplus
 }
 #endif
