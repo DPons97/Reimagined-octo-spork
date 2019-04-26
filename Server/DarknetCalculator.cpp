@@ -8,7 +8,7 @@
 DarknetCalculator::DarknetCalculator(float thresh) {
     // Define constants that were used when Darknet network was trained.
     cfg_file = const_cast<char *>("../Server/darknet/cfg/yolov3.cfg");
-    weight_file = const_cast<char *>("../Server/darknet/yolov3.weights");
+        weight_file = const_cast<char *>("../Server/darknet/yolov3.weights");
     names_file = const_cast<char *>("../Server/darknet/data/coco.names");
     this->thresh = thresh;
 
