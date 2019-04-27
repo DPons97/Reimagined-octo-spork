@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
 
     //create Background Subtractor objects
     Ptr<BackgroundSubtractor> pBackSub;
-    pBackSub = createBackgroundSubtractorMOG2(10, 16, false);
+    pBackSub = createBackgroundSubtractorMOG2(30, 16, -1);
 
     initCurrFrame();
     signal(SIGTERM, handler);
@@ -86,7 +86,7 @@ int main(int argc, char *argv[]) {
         value = mean(fgMask);
         mylog->writeLog(string("mean ").append(to_string(value[0])));
 
-        if (count > 3 && value[0] > 120) {
+        if (count > 3 && value[0] > 90) {
             mylog->writeLog(string("detected motion at frame ").append(to_string(currFrame)));
             mylog->writeLog(string("number of elaborated frames: ").append(to_string(count)));
             break;
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 string nextImg(){
     double ellapsedTime = ((double) (clock() - lastTime)/CLOCKS_PER_SEC );
     //mylog->writeLog(string("ellapsed time: ").append(to_string(ellapsedTime)));
-    double toSleep = (0.3334-ellapsedTime);
+    double toSleep = (0.16667-ellapsedTime);
     //mylog->writeLog(string("toSleep: ").append(to_string(toSleep)));
     if (toSleep > 0 ) {
         usleep(toSleep * 1000000);
