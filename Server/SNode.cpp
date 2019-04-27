@@ -238,8 +238,9 @@ void SNode::backgroundSubtraction() {
 
         // Analyze results and start tracking if something is found
         int num_boxes = 0;
+        int count = 0;
         detection * result = yoloCalculator.detect(image, &num_boxes);
-        log->writeLog(string("Found ").append(to_string(num_boxes)).append(" objects"));
+        log->writeLog(string("Found: "));
 
         if (num_boxes > 0) {
             // Found something
@@ -250,17 +251,43 @@ void SNode::backgroundSubtraction() {
                 for (int j = 0; j < labels.size(); j++) {
                     if (result[i].prob[j] >= threshold) {
                         // More information is in each detections[i] item.
+                        count++;
                         log->writeLog(string(labels[j]).append(" ").append(std::to_string(result[i].prob[j] * 100)));
                     }
                 }
             }
+
+            if (count == 0) log->writeLog(string("Nothing"));
+
+
+            /*
+           int i,j;
+           std::vector<std::string> labels = yoloCalculator.getLabels();
+
+           for(i = 0; i < num_boxes; ++i) {
+               char labelstr[4096] = {0};
+               int dn_class = -1;
+               for (j = 0; j < labels.size(); ++j) {
+                   if (result[i].prob[j] > threshold) {
+                       if (dn_class < 0) {
+                           strcat(labelstr, labels[j].data());
+                           dn_class = j;
+                       } else {
+                           strcat(labelstr, ", ");
+                           strcat(labelstr, labels[j].data());
+                       }
+                       printf("%s: %.0f%%\n", labels[j].data(), result[i].prob[j] * 100);
+                   }
+               }
+           }
+            */
 
             cpp_free_detections(result, num_boxes);
             log->writeLog("Found something important! Starting tracking...");
             // TODO: Start tracking
 
         } else {
-            instructions.erase(bkgPid);
+            instructions[bkgPid] = -1;
             close(bkgSocket);
         }
     }

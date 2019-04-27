@@ -542,6 +542,18 @@ typedef struct{
     box **boxes;
 } data;
 
+typedef struct node{
+    void *val;
+    struct node *next;
+    struct node *prev;
+} node;
+
+typedef struct list{
+    int size;
+    node *front;
+    node *back;
+} darknet_list;
+
 typedef enum {
     CLASSIFICATION_DATA, DETECTION_DATA, CAPTCHA_DATA, REGION_DATA, IMAGE_DATA, COMPARE_DATA, WRITING_DATA, SWAG_DATA, TAG_DATA, OLD_CLASSIFICATION_DATA, STUDY_DATA, DET_DATA, SUPER_DATA, LETTERBOX_DATA, REGRESSION_DATA, SEGMENTATION_DATA, INSTANCE_DATA, ISEG_DATA
 } data_type;
@@ -564,6 +576,11 @@ void cpp_free_image(image m);
 
 void cpp_free_detections(detection *dets, int n);
 
+darknet_list *read_data_cfg(char *filename);
+
+char *cpp_option_find_str(darknet_list *l, char *key, char *def);
+
+void cpp_do_nms_sort(detection *dets, int total, int classes, float thresh);
 
 
 #ifdef __cplusplus

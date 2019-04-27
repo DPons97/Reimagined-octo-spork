@@ -39,3 +39,16 @@ void cpp_free_image(image m) {
 void cpp_free_detections(detection *dets, int n) {
     free_detections(dets, n);
 }
+
+list * cpp_read_data_cfg(char *filename) {
+    return read_data_cfg(filename);
+}
+
+char * cpp_option_find_str(list *l, char *key, char *def) {
+    return option_find_str(l, key, def);
+}
+
+void cpp_do_nms_sort(detection *dets, int total, int classes, float thresh) {
+    void do_nms_sort(detection *dets, int total, int classes, float thresh);
+}
+

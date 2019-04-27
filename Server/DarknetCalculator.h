@@ -22,6 +22,9 @@ public:
 
 
 private:
+    // Path to data file.
+    char * cfg_data;
+
     // Path to configuration file.
     char * cfg_file;
 
