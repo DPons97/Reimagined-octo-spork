@@ -44,6 +44,7 @@ bool sendImage(Mat image);
 void initCurrFrame();
 void saveCurrFrame();
 bool waitForConfirm();
+bool motionDetected(const Mat &fgMask);
 
 void handler (int signal_number) {
     saveCurrFrame();
@@ -83,10 +84,9 @@ int main(int argc, char *argv[]) {
         //update the background model
         pBackSub->apply(frame, fgMask);
 
-        value = mean(fgMask);
-        mylog->writeLog(string("mean ").append(to_string(value[0])));
 
-        if (count > 3 && value[0] > 90) {
+
+        if (count > 3 && motionDetected(fgMask)) {
             mylog->writeLog(string("detected motion at frame ").append(to_string(currFrame)));
             mylog->writeLog(string("number of elaborated frames: ").append(to_string(count)));
             break;
@@ -190,4 +190,10 @@ bool waitForConfirm() {
     } while (strcmp(cmdBuff, "ready") != 0);
     //mylog->writeLog("Server is ready for next message");
     return true;
+}
+
+bool motionDetected(const Mat &fgMask){
+    Scalar value = mean(fgMask);
+    mylog->writeLog(string("mean ").append(to_string(value[0])));
+    return value[0] > 90;
 }
