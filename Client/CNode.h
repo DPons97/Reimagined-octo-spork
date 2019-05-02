@@ -1,5 +1,5 @@
 //
-// Created by pitohacapito on 3/26/19.
+// Created by luca collini on 3/26/19.
 //
 
 #ifndef OCTOSPORK_CNODE_H

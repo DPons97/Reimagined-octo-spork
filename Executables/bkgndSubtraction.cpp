@@ -33,12 +33,6 @@ long int currFrame;
 clock_t lastTime = 0;
 Logger * mylog;
 
-void error(const char *msg)
-{
-    perror(msg);
-    exit(1);
-}
-
 string nextImg();
 bool sendImage(Mat image);
 void initCurrFrame();
@@ -53,17 +47,16 @@ void handler (int signal_number) {
 }
 
 int main(int argc, char *argv[]) {
+    mylog = new Logger(string("node_tracker_").append(to_string(currFrame)),true);
+    initCurrFrame();
+    signal(SIGTERM, handler);
     sockfd = atoi(argv[1]);
-    mylog = new Logger(true);
     mylog->writeLog(string("New background subtraction job on socket ").append(to_string(sockfd)));
+    mylog->writeLog(string("Starting from frame ").append(to_string(currFrame)));
 
     //create Background Subtractor objects
     Ptr<BackgroundSubtractor> pBackSub;
     pBackSub = createBackgroundSubtractorMOG2(30, 16, -1);
-
-    initCurrFrame();
-    signal(SIGTERM, handler);
-    mylog->writeLog(string("Starting from frame ").append(to_string(currFrame)));
 
     Mat frame, fgMask;
     Scalar value;
@@ -192,6 +185,7 @@ bool waitForConfirm() {
     return true;
 }
 
+// Could be done better.
 bool motionDetected(const Mat &fgMask){
     Scalar value = mean(fgMask);
     mylog->writeLog(string("mean ").append(to_string(value[0])));

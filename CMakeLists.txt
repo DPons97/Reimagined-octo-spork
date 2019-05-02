@@ -64,3 +64,8 @@ file(GLOB EXEC_SOURCES
 add_executable(bkgSubtraction Executables/bkgndSubtraction.cpp ${EXEC_SOURCES})
 target_link_libraries( bkgSubtraction ${OpenCV_LIBS} )
 
+add_executable(nodeTracker Executables/nodeTracker.cpp)
+target_link_libraries(nodeTracker ${OpenCV_LIBS} ${EXEC_SOURCES})
+
+
+
