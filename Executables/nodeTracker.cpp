@@ -17,6 +17,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <list>
 #include <vector>
 #include "../Logger.h"
 #include <signal.h>
@@ -27,7 +28,12 @@
 using namespace cv;
 using namespace dnn;
 using namespace std;
-
+typedef struct {
+    int x;
+    int y;
+    int z;
+    double confidence;
+} track_point;
 int sockfd;
 long int currFrame;
 clock_t lastTime = 0;
@@ -37,7 +43,8 @@ float confThreshold = 0.5; // Confidence threshold
 float nmsThreshold = 0.4;  // Non-maximum suppression threshold
 int inpWidth = 416;  // Width of network's input image
 int inpHeight = 416; // Height of network's input image
-
+int track_class;
+list<track_point> * track_points;
 string nextImg();
 void initCurrFrame();
 void saveCurrFrame();
@@ -46,8 +53,7 @@ void postprocess(Mat& frame, const vector<Mat>& out);
 // Get the names of the output layers
 vector<String> getOutputsNames(const Net& net);
 // Draw the predicted bounding box
-void drawPred(int classId, float conf, int left, int top, int right, int bottom, Mat& frame);
-
+int calcZ(int width, int height);
 void handler (int signal_number) {
     saveCurrFrame();
     delete mylog;
@@ -57,11 +63,14 @@ void handler (int signal_number) {
 
 int main(int argc, char** argv) {
     // init job
-    // TODO: get object to track from parametes
     initCurrFrame();
     mylog = new Logger(string("node_tracker_").append(to_string(currFrame)),true);
     signal(SIGTERM, handler);
     sockfd = atoi(argv[1]);
+    track_class = 0;     // TODO: get object to track via socket
+
+    track_points = new list<track_point>;
+
     mylog->writeLog(string("New background subtraction job on socket ").append(to_string(sockfd)));
     mylog->writeLog(string("Starting from frame ").append(to_string(currFrame)));
 
@@ -152,55 +161,25 @@ void postprocess(Mat& frame, const vector<Mat>& outs)
             double confidence;
             // Get the value and location of the maximum score
             minMaxLoc(scores, 0, &confidence, 0, &classIdPoint);
-            if (confidence > confThreshold)
+            if (classIdPoint.x == track_class && confidence > confThreshold)
             {
                 int centerX = (int)(data[0] * frame.cols);
                 int centerY = (int)(data[1] * frame.rows);
                 int width = (int)(data[2] * frame.cols);
                 int height = (int)(data[3] * frame.rows);
-                int left = centerX - width / 2;
-                int top = centerY - height / 2;
-
-                classIds.push_back(classIdPoint.x);
-                confidences.push_back((float)confidence);
-                boxes.push_back(Rect(left, top, width, height));
-            }
+                int z = calcZ(width, height);
+                mylog->writeLog(string("Object found at ").append(to_string(centerX)).append("x").
+                                    append(to_string(centerY)).append(" with confidence of: ").
+                                    append(to_string(confidence*100)).append("%"));
+                track_points->push_back((track_point){ .x = centerX, .y = centerY, .z = z, .confidence = confidence});
+           }
         }
-    }
-
-    // Perform non maximum suppression to eliminate redundant overlapping boxes with
-    // lower confidences
-    vector<int> indices;
-    NMSBoxes(boxes, confidences, confThreshold, nmsThreshold, indices);
-    for (size_t i = 0; i < indices.size(); ++i)
-    {
-        int idx = indices[i];
-        Rect box = boxes[idx];
-        drawPred(classIds[idx], confidences[idx], box.x, box.y,
-                 box.x + box.width, box.y + box.height, frame);
     }
 }
 
-// Draw the predicted bounding box
-void drawPred(int classId, float conf, int left, int top, int right, int bottom, Mat& frame)
-{
-    //Draw a rectangle displaying the bounding box
-    rectangle(frame, Point(left, top), Point(right, bottom), Scalar(255, 178, 50), 3);
-
-    //Get the label for the class name and its confidence
-    string label = format("%.2f", conf);
-    if (!classes.empty())
-    {
-        CV_Assert(classId < (int)classes.size());
-        label = classes[classId] + ":" + label;
-    }
-
-    //Display the label at the top of the bounding box
-    int baseLine;
-    Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
-    top = max(top, labelSize.height);
-    rectangle(frame, Point(left, top - round(1.5*labelSize.height)), Point(left + round(1.5*labelSize.width), top + baseLine), Scalar(255, 255, 255), FILLED);
-    putText(frame, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0,0,0),1);
+int calcZ(int with , int height){
+    // TODO: actual calculation
+    return 50;
 }
 
 // Get the names of the output layers
