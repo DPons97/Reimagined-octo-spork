@@ -24,7 +24,13 @@ void SNode::start(int nodeSocket, int nodePort){
     log = new Logger("nodeServer", true);
     log->writeLog(string("[").append(toString()).append("] New node created"));
 
-    thread * newThread = new thread(&SNode::backgroundSubtraction, this);
+    /* Type of object to detect
+        1 -> person
+        3 -> car
+        4 -> motorbike
+    */
+    vector<int> objectToDetect = {1};
+    thread * newThread = new thread(&SNode::backgroundSubtraction, this, std::ref(objectToDetect));
     newThread->join();
 }
 
@@ -216,7 +222,7 @@ SNode::~SNode() {
 /**
  * Manage background subtraction operations
  */
-void SNode::backgroundSubtraction() {
+void SNode::backgroundSubtraction(vector<int> toTrack) {
     float threshold = 0.5;
     int bkgSocket, bkgPid;
 
@@ -244,7 +250,6 @@ void SNode::backgroundSubtraction() {
 
         if (num_boxes > 0) {
             // Found something
-
             // TESTING PURPOSE: Iterate over predicted classes and print information.
             std::vector<std::string> labels = yoloCalculator.getLabels();
             for (int8_t i = 0; i < num_boxes; i++) {
@@ -256,35 +261,24 @@ void SNode::backgroundSubtraction() {
                     }
                 }
             }
-
             if (count == 0) log->writeLog(string("Nothing"));
-
-
-            /*
-           int i,j;
-           std::vector<std::string> labels = yoloCalculator.getLabels();
-
-           for(i = 0; i < num_boxes; ++i) {
-               char labelstr[4096] = {0};
-               int dn_class = -1;
-               for (j = 0; j < labels.size(); ++j) {
-                   if (result[i].prob[j] > threshold) {
-                       if (dn_class < 0) {
-                           strcat(labelstr, labels[j].data());
-                           dn_class = j;
-                       } else {
-                           strcat(labelstr, ", ");
-                           strcat(labelstr, labels[j].data());
-                       }
-                       printf("%s: %.0f%%\n", labels[j].data(), result[i].prob[j] * 100);
-                   }
-               }
-           }
-            */
 
             cpp_free_detections(result, num_boxes);
             log->writeLog("Found something important! Starting tracking...");
-            // TODO: Start tracking
+
+
+            std::vector<std::string> objectString;
+            // Iterate over every result
+            for (int8_t i = 0; i < num_boxes; i++) {
+                // And over every object trained
+                for (int j = 0; j < labels.size(); j++) {
+                    if (std::find(toTrack.begin(), toTrack.end(), j) != toTrack.end() && result[i].prob[j] >= threshold) {
+                        // Send instruction to start tracking
+                        objectString[0] = to_string(j);
+                        tracking(j, startInstruction(2, objectString));
+                    }
+                }
+            }
 
         } else {
             instructions[bkgPid] = -1;
@@ -377,4 +371,64 @@ bool SNode::getAnswerImg(int bkgSocket, cv::Mat& outMat) const {
 
     outMat = inMat;
     return true;
+}
+
+/**
+ * Wait for a new coordinate result to arrive from client
+ * @param trackingSocket
+ * @param outCoords
+ * @return True if answer received successfully. False if error occurred or no coordinates left
+ */
+bool SNode::getAnswerCoordinates(int trackingSocket, coordinate& outCoords) {
+    int n;
+    std::vector<unsigned char> vectBuff;
+    char cmdBuff[100];
+    log->writeLog("Waiting for coordinate size to arrive");
+
+    bzero(cmdBuff, sizeof(cmdBuff));
+    n = (int) read(trackingSocket, cmdBuff, 5);
+    if (n <= 0) {
+        log->writeLog("ERROR reading command message or node disconnected");
+        return false;
+    }
+
+    if (strcmp(cmdBuff, "0") == 0) {
+        log->writeLog("No more coordinates. Disconnecting...");
+        return false;
+    }
+
+    // Read coordinates
+    int coordSize = atoi(cmdBuff);
+    bzero(cmdBuff, sizeof(cmdBuff));
+    n = (int) recv(trackingSocket, cmdBuff, coordSize, 0);
+    if (n < 0) {
+        log->writeLog("ERROR reading from socket");
+        return false;
+    }
+    sscanf(cmdBuff, "{%d_%d_%d_%lf}", &outCoords.x, &outCoords.y, &outCoords.z, &outCoords.confidence);
+    return true;
+}
+
+/**
+ * Tracking engine
+ * @param toTrack object to track
+ * @param trackSocket socket to communicate with tracking starting point
+ */
+void SNode::tracking(int toTrack, int trackSocket) {
+    // Init coords
+    coordinate newCoordinate = {
+            .x = 0,
+            .y = 0,
+            .z = 0,
+            .confidence = 0.00
+    };
+
+    while (getAnswerCoordinates(trackSocket, newCoordinate)) {
+        log->writeLog(string("Arrived coordinates: x = ").append(to_string(newCoordinate.x)
+        .append(", y = ").append(to_string(newCoordinate.y))
+        .append(", z = ").append(to_string(newCoordinate.z))
+        .append(", confidence = ").append(to_string(newCoordinate.confidence))));
+
+        // TODO: Do stuff with coordinates
+    }
 }
