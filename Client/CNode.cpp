@@ -127,7 +127,7 @@ void CNode::listen() {
                 }
 
                 // Build exec path
-                string path = "../Executables/";
+                string path = "../Client/Executables/";
                 path.append(execNames[cod]);
                 write(newSock, to_string(getpid()).data(), to_string(getpid()).size());
                 execvp(path.data(), args.data());
@@ -188,7 +188,7 @@ void CNode::readCodeFile() {
     ifstream execFile;
     int execQty = 0;
 
-    execFile.open("../Executables/executables.txt", ifstream::in);
+    execFile.open("../Client/Executables/executables.txt", ifstream::in);
     // Read executables quantity
     execFile >> execQty;
     if (execQty == 0) return;

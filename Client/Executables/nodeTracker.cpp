@@ -19,11 +19,11 @@
 #include <string.h>
 #include <list>
 #include <vector>
-#include "../Logger.h"
+#include "../../Logger.h"
 #include <signal.h>
 
-#define FRAME_NAME "../Executables/resources/frames/frame"
-#define FRAME_FILE "../Executables/resources/curr_frame.txt"
+#define FRAME_NAME "../Client/Executables/resources/frames/frame"
+#define FRAME_FILE "../Client/Executables/resources/curr_frame.txt"
 
 using namespace cv;
 using namespace dnn;
@@ -35,6 +35,7 @@ typedef struct {
     double confidence;
 } track_point;
 int sockfd;
+int empty_frames; //counts frames with no object found
 long int currFrame;
 clock_t lastTime = 0;
 Logger * mylog;
@@ -48,6 +49,7 @@ list<track_point> * track_points;
 string nextImg();
 void initCurrFrame();
 void saveCurrFrame();
+void sendTrackPoints();
 // Remove the bounding boxes with low confidence using non-maxima suppression
 void postprocess(Mat& frame, const vector<Mat>& out);
 // Get the names of the output layers
@@ -67,7 +69,7 @@ int main(int argc, char** argv) {
     mylog = new Logger(string("node_tracker_").append(to_string(currFrame)),true);
     signal(SIGTERM, handler);
     sockfd = atoi(argv[1]);
-    track_class = 0;     // TODO: get object to track via socket
+    track_class = atoi(argv[2]);     // TODO: get object to track via socket
 
     track_points = new list<track_point>;
 
@@ -89,7 +91,7 @@ int main(int argc, char** argv) {
     {
         frame = imread(nextImg().data(), CV_LOAD_IMAGE_COLOR);
         if (frame.empty()) {
-            mylog->writeLog("ERROR OPENING FRAME");
+            mylog->writeLog("FRAMES ENDED");
             break;
         }
         // Create a 4D blob from a frame.
@@ -105,8 +107,10 @@ int main(int argc, char** argv) {
         // Remove the bounding boxes with low confidence
         // TODO from here remove image processing. just look for object requested, get center x and y and area covered.
         postprocess(frame, outs);
-    }
+        if (empty_frames >= 3 ) break;
 
+    }
+    sendTrackPoints();
 
     return 0;
 }
@@ -144,10 +148,7 @@ void saveCurrFrame(){
 // Remove the bounding boxes with low confidence using non-maxima suppression
 void postprocess(Mat& frame, const vector<Mat>& outs)
 {
-    vector<int> classIds;
-    vector<float> confidences;
-    vector<Rect> boxes;
-
+    bool found = false;
     for (size_t i = 0; i < outs.size(); ++i)
     {
         // Scan through all the bounding boxes output from the network and keep only the
@@ -163,6 +164,8 @@ void postprocess(Mat& frame, const vector<Mat>& outs)
             minMaxLoc(scores, 0, &confidence, 0, &classIdPoint);
             if (classIdPoint.x == track_class && confidence > confThreshold)
             {
+                found = true;
+                empty_frames = 0;
                 int centerX = (int)(data[0] * frame.cols);
                 int centerY = (int)(data[1] * frame.rows);
                 int width = (int)(data[2] * frame.cols);
@@ -175,6 +178,7 @@ void postprocess(Mat& frame, const vector<Mat>& outs)
            }
         }
     }
+    if(!found)empty_frames ++;
 }
 
 int calcZ(int with , int height){
@@ -202,3 +206,16 @@ vector<String> getOutputsNames(const Net& net)
     return names;
 }
 
+void sendTrackPoints(){
+    string msg;
+    for(auto point: *track_points){
+        msg = string("{").append(to_string(point.x)).append("_").
+                append(to_string(point.y)).append("_").
+                append(to_string(point.z)).append("_").
+                append(to_string(point.confidence)).append("_").
+                append("}");
+        mylog->writeLog(string("Sending: ").append(msg));
+        write(sockfd,msg.data(), sizeof(msg.data()));
+    }
+    write(sockfd, "{stop}", 6);
+}

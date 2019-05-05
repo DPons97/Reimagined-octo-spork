@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <vector>
-#include "../Logger.h"
+#include "../../Logger.h"
 #include <signal.h>
 #include <opencv2/core/hal/interface.h>
 #include <opencv2/core/core.hpp>
@@ -22,8 +22,8 @@
 #include <time.h>
 
 //#define FRAME_NAME "/home/dpons/Documents/Programming/OctoSpork/Executables/resources/frames/frame"
-#define FRAME_NAME "../Executables/resources/frames/frame"
-#define FRAME_FILE "../Executables/resources/curr_frame.txt"
+#define FRAME_NAME "../Client/Executables/resources/frames/frame"
+#define FRAME_FILE "../Client/Executables/resources/curr_frame.txt"
 
 using namespace  cv;
 using namespace std;
