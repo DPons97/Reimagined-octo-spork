@@ -54,13 +54,15 @@ private:
 
     void backgroundSubtraction(vector<int> toTrack);
 
-    void tracking(int toTrack, int trackSocket);
+    void tracking(string toTrack, int trackSocket);
 
     void disconnect(int instrPid = 0);
 
     bool getAnswerImg(int bkgSocket, cv::Mat& outMat) const;
 
     bool getAnswerCoordinates(int trackingSocket, coordinate& outCoords);
+
+    void saveCoords(string toTrack, std::vector<coordinate> coords);
 
 };
 

@@ -9,6 +9,8 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <thread>
+#include <dirent.h>
+#include <sys/stat.h>
 
 #include "SNode.h"
 
@@ -275,7 +277,7 @@ void SNode::backgroundSubtraction(vector<int> toTrack) {
                     if (std::find(toTrack.begin(), toTrack.end(), j) != toTrack.end() && result[i].prob[j] >= threshold) {
                         // Send instruction to start tracking
                         objectString[0] = to_string(j);
-                        tracking(j, startInstruction(2, objectString));
+                        tracking(labels[j], startInstruction(2, objectString));
                     }
                 }
             }
@@ -414,21 +416,75 @@ bool SNode::getAnswerCoordinates(int trackingSocket, coordinate& outCoords) {
  * @param toTrack object to track
  * @param trackSocket socket to communicate with tracking starting point
  */
-void SNode::tracking(int toTrack, int trackSocket) {
-    // Init coords
-    coordinate newCoordinate = {
-            .x = 0,
-            .y = 0,
-            .z = 0,
-            .confidence = 0.00
-    };
+void SNode::tracking(string toTrack, int trackSocket) {
+    vector<coordinate> coordinates;
 
-    while (getAnswerCoordinates(trackSocket, newCoordinate)) {
+    log->writeLog(string("Tracking: ").append(toTrack));
+
+    bool coordsAvailable = true;
+    while (coordsAvailable) {
+        // Init coords
+        coordinate newCoordinate = {
+                .x = 0,
+                .y = 0,
+                .z = 0,
+                .confidence = 0.00
+        };
+
+        coordsAvailable = getAnswerCoordinates(trackSocket, newCoordinate);
+
         log->writeLog(string("Arrived coordinates: x = ").append(to_string(newCoordinate.x)
         .append(", y = ").append(to_string(newCoordinate.y))
         .append(", z = ").append(to_string(newCoordinate.z))
         .append(", confidence = ").append(to_string(newCoordinate.confidence))));
 
-        // TODO: Do stuff with coordinates
+        // Store coordinates
+        coordinates.push_back(newCoordinate);
+    }
+
+    // Save coordinates to file
+    saveCoords(toTrack, coordinates);
+}
+
+/**
+ * Save coordinates to file
+ */
+void SNode::saveCoords(string toTrack, std::vector<coordinate> coords) {
+    auto stream = new fstream();
+    string fileName;
+
+    // Get current time
+    auto CurrentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+
+    // Format current time as Day/Month/DayNr_hh:dd:ss:Yr.Log
+    auto FormattedTime = std::ctime(&CurrentTime);
+
+    fileName.assign("Coordinates/tracking_").append(FormattedTime);
+
+    // Replace spaces with underscores
+    for (char &c : fileName) {
+        c = c == ' ' ? '_' : c;
+    }
+
+    // Try to open Logs directory
+    DIR * LogDir = opendir("Coordinates/");
+    if (LogDir == nullptr) {
+        // Create new dir
+        mkdir("Coordinates/", 0777);
+    } else closedir(LogDir);
+
+    // Open log file
+    stream->open(fileName.data(), ios::out);
+
+    string toWrite = string("Tracking: ").append(toTrack);
+    stream->write(toWrite.data(), toWrite.length());
+    for (coordinate c : coords) {
+        toWrite = string("x = ")
+                .append(to_string(c.x)
+                .append(", y = ").append(to_string(c.y))
+                .append(", z = ").append(to_string(c.z))
+                .append(", confidence = ").append(to_string(c.confidence)).append("\n"));
+
+        stream->write(toWrite.data(), toWrite.length());
     }
 }
