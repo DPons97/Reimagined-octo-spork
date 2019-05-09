@@ -73,12 +73,12 @@ int main(int argc, char** argv) {
 
     track_points = new list<track_point>;
 
-    mylog->writeLog(string("New background subtraction job on socket ").append(to_string(sockfd)));
+    mylog->writeLog(string("New tracking job on socket ").append(to_string(sockfd)));
     mylog->writeLog(string("Starting from frame ").append(to_string(currFrame)));
 
     // Give the configuration and weight files for the model
     String modelConfiguration = "../Server/darknet/cfg/yolov3-tiny.cfg";
-    String modelWeights = "../Server/darknet/yolov3-tiny.cfg";
+    String modelWeights = "../Server/darknet/yolov3-tiny.weights";
 
     // Load the network
     Net net = readNetFromDarknet(modelConfiguration, modelWeights);
@@ -105,7 +105,6 @@ int main(int argc, char** argv) {
         net.forward(outs, getOutputsNames(net));
 
         // Remove the bounding boxes with low confidence
-        // TODO from here remove image processing. just look for object requested, get center x and y and area covered.
         postprocess(frame, outs);
         if (empty_frames >= 3 ) break;
 
@@ -149,19 +148,19 @@ void saveCurrFrame(){
 void postprocess(Mat& frame, const vector<Mat>& outs)
 {
     bool found = false;
-    for (size_t i = 0; i < outs.size(); ++i)
+    for (const auto & out : outs)
     {
         // Scan through all the bounding boxes output from the network and keep only the
         // ones with high confidence scores. Assign the box's class label as the class
         // with the highest score for the box.
-        float* data = (float*)outs[i].data;
-        for (int j = 0; j < outs[i].rows; ++j, data += outs[i].cols)
+        auto* data = (float*)out.data;
+        for (int j = 0; j < out.rows; ++j, data += out.cols)
         {
-            Mat scores = outs[i].row(j).colRange(5, outs[i].cols);
+            Mat scores = out.row(j).colRange(5, out.cols);
             Point classIdPoint;
             double confidence;
             // Get the value and location of the maximum score
-            minMaxLoc(scores, 0, &confidence, 0, &classIdPoint);
+            minMaxLoc(scores, nullptr, &confidence, nullptr, &classIdPoint);
             if (classIdPoint.x == track_class && confidence > confThreshold)
             {
                 found = true;
