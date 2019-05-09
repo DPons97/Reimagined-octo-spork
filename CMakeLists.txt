@@ -56,7 +56,7 @@ set_property( TARGET ${DARKNET_LIB_NAME} PROPERTY IMPORTED_LOCATION "${DARKNET_P
 # Link all libraries together.
 target_link_libraries(${PROJ_NAME} ${DARKNET_LIB_NAME})
 
-# Server executable
+# Additional executables
 file(GLOB EXEC_SOURCES
         "*.h"
         "*.cpp"

@@ -87,6 +87,7 @@ void CNode::listen() {
             printf("waitpid res: %d\n", deadPid);
             if (deadPid > 0) cleanChild(findChild(deadPid));
         } while(deadPid > 0);
+
         if (cod == 0) {
             int termCod = atoi(sep_msg[1].c_str());
             if(termCod == 0){ // if termCod is 0 kill all and exit
@@ -189,6 +190,8 @@ void CNode::readCodeFile() {
     int execQty = 0;
 
     execFile.open("../Client/Executables/executables.txt", ifstream::in);
+    if (!execFile.is_open()) log->writeLog("Error opening executables file");
+
     // Read executables quantity
     execFile >> execQty;
     if (execQty == 0) return;
