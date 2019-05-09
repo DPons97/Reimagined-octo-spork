@@ -156,15 +156,16 @@ bool sendImage(Mat image){
 }
 
 void initCurrFrame(){
-    FILE *f = fopen(FRAME_FILE, "r");
+    /*FILE *f = fopen(FRAME_FILE, "r");
     fscanf(f, "%ld", &currFrame);
-    fclose(f);
+    fclose(f);*/
+
+    currFrame = 1;
 }
 
 void saveCurrFrame(){
     FILE *f = fopen(FRAME_FILE, "w");
-    fprintf(f, "1");
-    //fprintf(f, "%ld", currFrame);
+    fprintf(f, "%ld", currFrame);
     mylog->writeLog(string("Saving current frame number ").append(to_string(currFrame)));
     fclose(f);
 }

@@ -28,36 +28,56 @@
 using namespace cv;
 using namespace dnn;
 using namespace std;
+
 typedef struct {
     int x;
     int y;
     int z;
     double confidence;
 } track_point;
+
 int sockfd;
+
 int empty_frames; //counts frames with no object found
+
 long int currFrame;
+
 clock_t lastTime = 0;
+
 Logger * mylog;
+
 vector<string> classes;
+
 float confThreshold = 0.5; // Confidence threshold
+
 float nmsThreshold = 0.4;  // Non-maximum suppression threshold
+
 int inpWidth = 416;  // Width of network's input image
+
 int inpHeight = 416; // Height of network's input image
+
 int track_class;
+
 list<track_point> * track_points;
+
 string nextImg();
+
 void initCurrFrame();
 void saveCurrFrame();
 void sendTrackPoints();
+
 // Remove the bounding boxes with low confidence using non-maxima suppression
 void postprocess(Mat& frame, const vector<Mat>& out);
+
 // Get the names of the output layers
 vector<String> getOutputsNames(const Net& net);
+
 // Draw the predicted bounding box
 int calcZ(int width, int height);
+
 void handler (int signal_number) {
     saveCurrFrame();
+    mylog->writeLog(string("[nodeTracker] Exiting with signal ").append(to_string(signal_number)));
     delete mylog;
     exit(signal_number);
 }
@@ -76,6 +96,12 @@ int main(int argc, char** argv) {
     mylog->writeLog(string("New tracking job on socket ").append(to_string(sockfd)));
     mylog->writeLog(string("Starting from frame ").append(to_string(currFrame)));
 
+    // Load classes
+    string classesFile = "../Server/darknet/data/coco.names";
+    ifstream ifs(classesFile.c_str());
+    string line;
+    while(getline(ifs, line)) classes.push_back(line);
+
     // Give the configuration and weight files for the model
     String modelConfiguration = "../Server/darknet/cfg/yolov3-tiny.cfg";
     String modelWeights = "../Server/darknet/yolov3-tiny.weights";
@@ -85,11 +111,15 @@ int main(int argc, char** argv) {
     net.setPreferableBackend(DNN_BACKEND_OPENCV);
     net.setPreferableTarget(DNN_TARGET_CPU);
 
+    string outputFile;
+    VideoCapture cap;
+    VideoWriter video;
     Mat frame, blob;
 
     while(true) //find better condition
     {
         frame = imread(nextImg().data(), CV_LOAD_IMAGE_COLOR);
+
         if (frame.empty()) {
             mylog->writeLog("FRAMES ENDED");
             break;
@@ -103,6 +133,7 @@ int main(int argc, char** argv) {
         // Runs the forward pass to get output of the output layers
         vector<Mat> outs;
         net.forward(outs, getOutputsNames(net));
+        mylog->writeLog("Frame analyzed");
 
         // Remove the bounding boxes with low confidence
         postprocess(frame, outs);
@@ -148,8 +179,14 @@ void saveCurrFrame(){
 void postprocess(Mat& frame, const vector<Mat>& outs)
 {
     bool found = false;
+    vector<int> classIds;
+    vector<float> confidences;
+    vector<Rect> boxes;
+
+    mylog->writeLog("Processing output data");
     for (const auto & out : outs)
     {
+        mylog->writeLog("Scanning outputs");
         // Scan through all the bounding boxes output from the network and keep only the
         // ones with high confidence scores. Assign the box's class label as the class
         // with the highest score for the box.
@@ -160,21 +197,24 @@ void postprocess(Mat& frame, const vector<Mat>& outs)
             Point classIdPoint;
             double confidence;
             // Get the value and location of the maximum score
-            minMaxLoc(scores, nullptr, &confidence, nullptr, &classIdPoint);
-            if (classIdPoint.x == track_class && confidence > confThreshold)
-            {
-                found = true;
-                empty_frames = 0;
-                int centerX = (int)(data[0] * frame.cols);
-                int centerY = (int)(data[1] * frame.rows);
-                int width = (int)(data[2] * frame.cols);
-                int height = (int)(data[3] * frame.rows);
-                int z = calcZ(width, height);
-                mylog->writeLog(string("Object found at ").append(to_string(centerX)).append("x").
-                                    append(to_string(centerY)).append(" with confidence of: ").
-                                    append(to_string(confidence*100)).append("%"));
-                track_points->push_back((track_point){ .x = centerX, .y = centerY, .z = z, .confidence = confidence});
-           }
+            minMaxLoc(scores, 0, &confidence, 0, &classIdPoint);
+            if (confidence > confThreshold) {
+                mylog->writeLog(classes[classIdPoint.x].append(" ").append(to_string(confidence)));
+
+                if (classIdPoint.x == track_class) {
+                    found = true;
+                    empty_frames = 0;
+                    int centerX = (int)(data[0] * frame.cols);
+                    int centerY = (int)(data[1] * frame.rows);
+                    int width = (int)(data[2] * frame.cols);
+                    int height = (int)(data[3] * frame.rows);
+                    int z = calcZ(width, height);
+                    mylog->writeLog(string("Object found at ").append(to_string(centerX)).append("x").
+                            append(to_string(centerY)).append(" with confidence of: ").
+                            append(to_string(confidence*100)).append("%"));
+                    track_points->push_back((track_point){ .x = centerX, .y = centerY, .z = z, .confidence = confidence});
+                }
+            }
         }
     }
     if(!found)empty_frames ++;
