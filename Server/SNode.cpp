@@ -31,7 +31,7 @@ void SNode::start(int nodeSocket, int nodePort){
         3 -> car
         4 -> motorbike
     */
-    vector<int> objectToDetect = {1};
+    vector<int> objectToDetect = {0};
     thread * newThread = new thread(&SNode::backgroundSubtraction, this, std::ref(objectToDetect));
     newThread->join();
 }
@@ -138,6 +138,8 @@ bool SNode::sendMessage(int instrCode, const std::vector<std::string> &args) {
         }
         message.erase(message.end() - 1, message.end());
     }
+
+    log->writeLog(string("Sending ").append(message.data()));
 
     n = (int) write(currSocket, message.data(), strlen(message.data()));
     if (n < 0) {
@@ -265,22 +267,25 @@ void SNode::backgroundSubtraction(vector<int> toTrack) {
             }
             if (count == 0) log->writeLog(string("Nothing"));
 
-            cpp_free_detections(result, num_boxes);
-            log->writeLog("Found something important! Starting tracking...");
-
-
-            std::vector<std::string> objectString;
             // Iterate over every result
             for (int8_t i = 0; i < num_boxes; i++) {
                 // And over every object trained
                 for (int j = 0; j < labels.size(); j++) {
                     if (std::find(toTrack.begin(), toTrack.end(), j) != toTrack.end() && result[i].prob[j] >= threshold) {
                         // Send instruction to start tracking
-                        objectString[0] = to_string(j);
+                        std::vector<std::string> objectString;
+                        objectString.insert(objectString.begin(), to_string(j));
+                        log->writeLog(string("Found ").append(labels[j]).append("! Starting tracking..."));
                         tracking(labels[j], startInstruction(2, objectString));
+
+                        // TODO REMOVE THIS IN FINAL RELEASE
+                        break;
+
                     }
                 }
             }
+
+            cpp_free_detections(result, num_boxes);
 
         } else {
             instructions[bkgPid] = -1;
@@ -289,7 +294,7 @@ void SNode::backgroundSubtraction(vector<int> toTrack) {
     }
 
     // Stopped video stream or error occurred. Disconnecting last socket
-    instructions.erase(bkgPid);
+    instructions[bkgPid] = -1;
     close(bkgSocket);
 }
 
@@ -444,6 +449,9 @@ void SNode::tracking(string toTrack, int trackSocket) {
 
     // Save coordinates to file
     saveCoords(toTrack, coordinates);
+
+    instructions[trackSocket] = -1;
+    close(trackSocket);
 }
 
 /**

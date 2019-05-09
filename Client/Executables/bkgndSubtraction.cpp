@@ -163,7 +163,8 @@ void initCurrFrame(){
 
 void saveCurrFrame(){
     FILE *f = fopen(FRAME_FILE, "w");
-    fprintf(f, "%ld", currFrame);
+    fprintf(f, "1");
+    //fprintf(f, "%ld", currFrame);
     mylog->writeLog(string("Saving current frame number ").append(to_string(currFrame)));
     fclose(f);
 }
