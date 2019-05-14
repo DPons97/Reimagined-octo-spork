@@ -66,12 +66,14 @@ int main(int argc, char *argv[]) {
             //alert nothing was found and no more frames
             write(sockfd, "imgstop",7);
             saveCurrFrame();
+            delete mylog;
             return 0;
         }
         frame = imread(nextImg().data(), CV_LOAD_IMAGE_COLOR);
         if (frame.empty()){
             mylog->writeLog("ERROR OPENING FRAME");
-            break;
+            delete mylog;
+            return 0;
         }
 
         //update the background model

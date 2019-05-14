@@ -22,7 +22,7 @@
 #include "../../Logger.h"
 #include <signal.h>
 
-#define FRAME_NAME "../Client/Executables/resources/frames/frame"
+#define FRAME_NAME "../Client/Executables/resources/frames_test/frame"
 #define FRAME_FILE "../Client/Executables/resources/curr_frame.txt"
 
 using namespace cv;
@@ -52,9 +52,9 @@ float confThreshold = 0.5; // Confidence threshold
 
 float nmsThreshold = 0.4;  // Non-maximum suppression threshold
 
-int inpWidth = 416;  // Width of network's input image
+int inpWidth = 128;  // Width of network's input image
 
-int inpHeight = 416; // Height of network's input image
+int inpHeight = 128; // Height of network's input image
 
 int track_class;
 
@@ -103,8 +103,8 @@ int main(int argc, char** argv) {
     while(getline(ifs, line)) classes.push_back(line);
 
     // Give the configuration and weight files for the model
-    String modelConfiguration = "../Server/darknet/cfg/yolov3-tiny.cfg";
-    String modelWeights = "../Server/darknet/yolov3-tiny.weights";
+    String modelConfiguration = "../Server/darknet/cfg/yolov3.cfg";
+    String modelWeights = "../Server/darknet/yolov3.weights";
 
     // Load the network
     Net net = readNetFromDarknet(modelConfiguration, modelWeights);
@@ -251,7 +251,7 @@ void sendTrackPoints(){
         msg = string("{").append(to_string(point.x)).append("_").
                 append(to_string(point.y)).append("_").
                 append(to_string(point.z)).append("_").
-                append(to_string(point.confidence)).append("_").
+                append(to_string(point.confidence)).
                 append("}");
         mylog->writeLog(string("Sending: ").append(msg));
         write(sockfd,msg.data(), sizeof(msg.data()));

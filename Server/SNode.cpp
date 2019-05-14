@@ -32,6 +32,7 @@ void SNode::start(int nodeSocket, int nodePort){
         4 -> motorbike
     */
     vector<int> objectToDetect = {0};
+
     thread * newThread = new thread(&SNode::backgroundSubtraction, this, std::ref(objectToDetect));
     newThread->join();
 }
@@ -115,6 +116,7 @@ int SNode::startInstruction(int instrCode, std::vector<std::string> args) {
         int clientPid = atoi(answer.data());
 
         instructions.insert(it, pair<int, int>(clientPid, newSock));
+        log->writeLog(std::string("[").append(toString()).append("] Connection accepted. Starting job..."));
         return clientPid;
     }
 }
