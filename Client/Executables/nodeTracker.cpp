@@ -212,8 +212,9 @@ void sendTrackPoints(){
                 append(to_string(point.y)).append("_").
                 append(to_string(point.z)).append("_").
                 append(to_string(point.confidence)).append("}");
-        mylog->writeLog(string("Sending: ").append(msg));
+        write(sockfd,to_string(sizeof(msg.data())).data(), 2);
         write(sockfd,msg.data(), sizeof(msg.data()));
+        mylog->writeLog(string("Sending: ").append(msg));
     }
     write(sockfd, "{stop}", 6);
 }
