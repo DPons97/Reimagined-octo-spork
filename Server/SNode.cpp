@@ -278,11 +278,11 @@ void SNode::backgroundSubtraction(vector<int> toTrack) {
                         std::vector<std::string> objectString;
                         objectString.insert(objectString.begin(), to_string(j));
                         log->writeLog(string("Found ").append(labels[j]).append("! Starting tracking..."));
-                        tracking(labels[j], startInstruction(2, objectString));
+                        int trackingPid = startInstruction(2, objectString);
+                        tracking(labels[j], trackingPid);
 
-                        // TODO REMOVE THIS IN FINAL RELEASE
+                        // TODO Track only first object. To be fixed
                         break;
-
                     }
                 }
             }
@@ -395,7 +395,7 @@ bool SNode::getAnswerCoordinates(int trackingSocket, coordinate& outCoords) {
     log->writeLog("Waiting for coordinate size to arrive");
 
     bzero(cmdBuff, sizeof(cmdBuff));
-    n = (int) read(trackingSocket, cmdBuff, 5);
+    n = (int) read(trackingSocket, cmdBuff, 2);
     if (n <= 0) {
         log->writeLog("ERROR reading size message or node disconnected");
         return false;
@@ -409,7 +409,7 @@ bool SNode::getAnswerCoordinates(int trackingSocket, coordinate& outCoords) {
     // Read coordinates
     int coordSize = atoi(cmdBuff);
     bzero(cmdBuff, sizeof(cmdBuff));
-    n = (int) recv(trackingSocket, cmdBuff, coordSize, 0);
+    n = (int) read(trackingSocket, cmdBuff, coordSize);
     if (n < 0) {
         log->writeLog("ERROR reading from socket");
         return false;
@@ -423,8 +423,9 @@ bool SNode::getAnswerCoordinates(int trackingSocket, coordinate& outCoords) {
  * @param toTrack object to track
  * @param trackSocket socket to communicate with tracking starting point
  */
-void SNode::tracking(string toTrack, int trackSocket) {
+void SNode::tracking(string toTrack, int trackPid) {
     vector<coordinate> coordinates;
+    int trackSocket = instructions[trackPid];
 
     log->writeLog(string("Tracking: ").append(toTrack));
 
@@ -452,7 +453,7 @@ void SNode::tracking(string toTrack, int trackSocket) {
     // Save coordinates to file
     saveCoords(toTrack, coordinates);
 
-    instructions[trackSocket] = -1;
+    instructions[trackPid] = -1;
     close(trackSocket);
 }
 
@@ -486,7 +487,7 @@ void SNode::saveCoords(string toTrack, std::vector<coordinate> coords) {
     // Open log file
     stream->open(fileName.data(), ios::out);
 
-    string toWrite = string("Tracking: ").append(toTrack);
+    string toWrite = string("Tracking: ").append(toTrack).append("\n");
     stream->write(toWrite.data(), toWrite.length());
     for (coordinate c : coords) {
         toWrite = string("x = ")
@@ -497,4 +498,5 @@ void SNode::saveCoords(string toTrack, std::vector<coordinate> coords) {
 
         stream->write(toWrite.data(), toWrite.length());
     }
+    stream->close();
 }

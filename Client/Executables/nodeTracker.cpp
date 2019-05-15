@@ -259,6 +259,6 @@ void sendTrackPoints(){
         mylog->writeLog(string("Sending: ").append(msg));
         write(sockfd,msg.data(), msg.size());
     }
-    write(sockfd, "{stop}", 6);
+    write(sockfd, "0", 1);
     saveCurrFrame();
 }

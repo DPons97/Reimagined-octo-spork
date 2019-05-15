@@ -132,7 +132,10 @@ void CNode::listen() {
                 path.append(execNames[cod]);
                 write(newSock, to_string(getpid()).data(), to_string(getpid()).size());
 
-                // TODO Testing purposes: wait key to be pressed before starting
+                // Testing purposes: wait key to be pressed before starting
+                char unlock;
+                printf("Press enter to continue");
+                scanf("%c", &unlock);
 
                 execvp(path.data(), args.data());
 
