@@ -66,12 +66,14 @@ int main(int argc, char *argv[]) {
             //alert nothing was found and no more frames
             write(sockfd, "imgstop",7);
             saveCurrFrame();
+            delete mylog;
             return 0;
         }
         frame = imread(nextImg().data(), CV_LOAD_IMAGE_COLOR);
         if (frame.empty()){
             mylog->writeLog("ERROR OPENING FRAME");
-            break;
+            delete mylog;
+            return 0;
         }
 
         //update the background model
@@ -156,15 +158,16 @@ bool sendImage(Mat image){
 }
 
 void initCurrFrame(){
-    FILE *f = fopen(FRAME_FILE, "r");
+    /*FILE *f = fopen(FRAME_FILE, "r");
     fscanf(f, "%ld", &currFrame);
-    fclose(f);
+    fclose(f);*/
+
+    currFrame = 1;
 }
 
 void saveCurrFrame(){
     FILE *f = fopen(FRAME_FILE, "w");
-    fprintf(f, "1");
-    //fprintf(f, "%ld", currFrame);
+    fprintf(f, "%ld", currFrame);
     mylog->writeLog(string("Saving current frame number ").append(to_string(currFrame)));
     fclose(f);
 }

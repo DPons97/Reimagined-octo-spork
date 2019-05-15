@@ -1,4 +1,3 @@
-3
+2
 1:bkgSubtraction
 2:nodeTracker
-3:ChildExample3
