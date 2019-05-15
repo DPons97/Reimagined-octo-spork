@@ -397,7 +397,7 @@ bool SNode::getAnswerCoordinates(int trackingSocket, coordinate& outCoords) {
     bzero(cmdBuff, sizeof(cmdBuff));
     n = (int) read(trackingSocket, cmdBuff, 5);
     if (n <= 0) {
-        log->writeLog("ERROR reading command message or node disconnected");
+        log->writeLog("ERROR reading size message or node disconnected");
         return false;
     }
 

@@ -131,6 +131,9 @@ void CNode::listen() {
                 string path = "../Client/Executables/";
                 path.append(execNames[cod]);
                 write(newSock, to_string(getpid()).data(), to_string(getpid()).size());
+
+                // TODO Testing purposes: wait key to be pressed before starting
+
                 execvp(path.data(), args.data());
 
             } else {

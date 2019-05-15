@@ -22,7 +22,7 @@
 #include "../../Logger.h"
 #include <signal.h>
 
-#define FRAME_NAME "../Client/Executables/resources/frames_test/frame"
+#define FRAME_NAME "../Client/Executables/resources/cam1/frame"
 #define FRAME_FILE "../Client/Executables/resources/curr_frame.txt"
 
 using namespace cv;
@@ -253,8 +253,12 @@ void sendTrackPoints(){
                 append(to_string(point.z)).append("_").
                 append(to_string(point.confidence)).
                 append("}");
+        mylog->writeLog(string("Sending size: ").append(to_string(msg.size())));
+
+        write(sockfd, to_string(msg.size()).data(), to_string(msg.size()).size());
         mylog->writeLog(string("Sending: ").append(msg));
-        write(sockfd,msg.data(), sizeof(msg.data()));
+        write(sockfd,msg.data(), msg.size());
     }
     write(sockfd, "{stop}", 6);
+    saveCurrFrame();
 }

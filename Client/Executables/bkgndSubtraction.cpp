@@ -22,7 +22,7 @@
 #include <time.h>
 
 //#define FRAME_NAME "/home/dpons/Documents/Programming/OctoSpork/Executables/resources/frames/frame"
-#define FRAME_NAME "../Client/Executables/resources/frames/frame"
+#define FRAME_NAME "../Client/Executables/resources/cam1/frame"
 #define FRAME_FILE "../Client/Executables/resources/curr_frame.txt"
 
 using namespace  cv;
@@ -32,7 +32,7 @@ int sockfd;
 long int currFrame;
 clock_t lastTime = 0;
 Logger * mylog;
-
+int blobTresh = 18;
 string nextImg();
 bool sendImage(Mat image);
 void initCurrFrame();
@@ -62,16 +62,17 @@ int main(int argc, char *argv[]) {
     Scalar value;
     int count = 0;
     while (true) {
-        if (currFrame > 1667) { // video stream is over
+        /*if (currFrame > 1667) { // video stream is over
             //alert nothing was found and no more frames
             write(sockfd, "imgstop",7);
             saveCurrFrame();
             delete mylog;
             return 0;
-        }
+        }*/
         frame = imread(nextImg().data(), CV_LOAD_IMAGE_COLOR);
         if (frame.empty()){
-            mylog->writeLog("ERROR OPENING FRAME");
+            write(sockfd, "imgstop",7);
+            saveCurrFrame();
             delete mylog;
             return 0;
         }
@@ -158,11 +159,11 @@ bool sendImage(Mat image){
 }
 
 void initCurrFrame(){
-    /*FILE *f = fopen(FRAME_FILE, "r");
+    FILE *f = fopen(FRAME_FILE, "r");
     fscanf(f, "%ld", &currFrame);
-    fclose(f);*/
+    fclose(f);
 
-    currFrame = 1;
+    //currFrame = 1;
 }
 
 void saveCurrFrame(){
@@ -193,5 +194,5 @@ bool waitForConfirm() {
 bool motionDetected(const Mat &fgMask){
     Scalar value = mean(fgMask);
     mylog->writeLog(string("mean ").append(to_string(value[0])));
-    return value[0] > 90;
+    return value[0] > blobTresh;
 }
