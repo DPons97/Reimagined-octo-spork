@@ -23,6 +23,16 @@
 #include <signal.h>
 
 #define FRAME_NAME "../Client/Executables/resources/cam1/frame"
+
+// meters !!
+#define FOCAL_LENGTH 0.025
+#define HONEY_CONSTANT 0.12
+#define OBJECT_HEIGHT 1.80
+#define PIXEL_SIZE 0.00000122
+
+#define PIXEL_COMPRSSION_RATE 3
+
+
 #define FRAME_FILE "../Client/Executables/resources/curr_frame.txt"
 
 using namespace cv;
@@ -220,9 +230,10 @@ void postprocess(Mat& frame, const vector<Mat>& outs)
     if(!found)empty_frames ++;
 }
 
-int calcZ(int with , int height){
-    // TODO: actual calculation
-    return 50;
+int calcZ(int width , int height){
+    // Formula from https://en.wikipedia.org/wiki/Pinhole_camera_model
+    // maybe one day someone wants to use the width for other kind of objects...
+    return OBJECT_HEIGHT*FOCAL_LENGTH*HONEY_CONSTANT/(height*PIXEL_SIZE*PIXEL_COMPRSSION_RATE)*100; //centimeters!!
 }
 
 // Get the names of the output layers

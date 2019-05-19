@@ -28,14 +28,26 @@
  * 2 track
  * 3 identify
  */
-CNode::CNode(int portno, char * hostname) {
+CNode::CNode(int portno, char * hostname,int id, int abs_x, int abs_z, int cpu_power,
+             int upNeighbour, int bottomNeighbour, int leftNeighbour, int rightNeighbour) {
     // start connection and create Logger object
     log = new Logger("nodeClient", true);
     execNames = map<int, string>();
     this->hostname = hostname;
-
+    this->abs_x = abs_x;
+    this->abs_z = abs_z;
     readCodeFile();
     sockfd = newSocket(portno);
+    string msg = string("{").append(to_string(cpu_power)).append(",").append(to_string(id)).append(",")
+            .append(to_string(abs_x)).append(",").append(to_string(abs_z))
+            .append(",").append(to_string(upNeighbour)).append(",").append(to_string(bottomNeighbour))
+            .append(",").append(to_string(leftNeighbour)).append(",").append(to_string(rightNeighbour)).append("}");
+    int nwrite = write(sockfd, to_string(msg.size()).data(), to_string(msg.size()).size());
+    if (nwrite < 0)
+        error("ERROR writing to socket");
+    nwrite = write(sockfd, msg.data(), msg.size());
+    if (nwrite < 0)
+        error("ERROR writing to socket");
 }
 
 /**
@@ -133,9 +145,9 @@ void CNode::listen() {
                 write(newSock, to_string(getpid()).data(), to_string(getpid()).size());
 
                 // Testing purposes: wait key to be pressed before starting
-                char unlock;
-                printf("Press enter to continue");
-                scanf("%c", &unlock);
+                //char unlock;
+                //printf("Press enter to continue");
+                //scanf("%c", &unlock);
 
                 execvp(path.data(), args.data());
 

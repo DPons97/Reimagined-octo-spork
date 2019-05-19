@@ -18,7 +18,8 @@ typedef struct {
 class CNode {
 
 public:
-    CNode(int portno, char * hostname);
+    CNode(int portno, char * hostname, int cpu_power, int id, int abs_x, int abs_z,
+            int upNeighbour, int bottomNeighbour, int leftNeighbour, int rightNeighbour);
 
     void listen();
 
@@ -32,6 +33,10 @@ private:
     int sockfd;
 
     char * hostname;
+
+    int abs_x;
+
+    int abs_z;
 
     list<child*> children;
 
