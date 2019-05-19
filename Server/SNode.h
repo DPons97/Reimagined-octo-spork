@@ -14,13 +14,6 @@
 #include <opencv2/core/hal/interface.h>
 #include <opencv2/highgui/highgui.hpp>
 
-typedef struct {
-    int x;
-    int y;
-    int z;
-    double confidence;
-} coordinate;
-
 class SNode {
 
 public:
@@ -35,11 +28,9 @@ public:
 
     void start(int nodeSocket, int nodePort);
 
-    int getSocket() const;
+    const char * toString();
 
     virtual ~SNode();
-
-    const char * toString();
 
 protected:
 
@@ -48,22 +39,7 @@ private:
     // Methods
     bool sendMessage(int instrCode, const std::vector<string> &args = std::vector<string>());
 
-    bool getAnswerCode(string& outCode, int instrSocket);
-
-    int startInstruction(int instrCode, std::vector<string> args = std::vector<string>());
-
-    void backgroundSubtraction(vector<int> toTrack);
-
-    void tracking(string toTrack, int trackSocket);
-
     void disconnect(int instrPid = 0);
-
-    bool getAnswerImg(int bkgSocket, cv::Mat& outMat) const;
-
-    bool getAnswerCoordinates(int trackingSocket, coordinate& outCoords);
-
-    void saveCoords(string toTrack, std::vector<coordinate> coords);
-
 };
 
 

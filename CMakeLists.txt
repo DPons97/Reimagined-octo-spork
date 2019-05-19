@@ -30,7 +30,7 @@ file(GLOB SERVER_SOURCES
         "*.cpp"
         )
 
-add_executable(OctoSporkServer Server/main.cpp ${SERVER_SOURCES} Server/SNode.cpp Server/SNode.h Server/DarknetCalculator.cpp Server/DarknetCalculator.h Server/darknet.c Server/darknet.h)
+add_executable(OctoSporkServer Server/main.cpp ${SERVER_SOURCES} Server/SNode.cpp Server/SNode.h Server/DarknetCalculator.cpp Server/DarknetCalculator.h Server/darknet.c Server/darknet.h Server/Instructions/Instruction.cpp Server/Instructions/Instruction.h Server/Instructions/bkgSubtraction.cpp Server/Instructions/bkgSubtraction.h Server/Instructions/Tracker.cpp Server/Instructions/Tracker.h Server/Planimetry.cpp Server/Planimetry.h)
 
 #Include OpenCV
 target_link_libraries( OctoSporkServer ${OpenCV_LIBS} )

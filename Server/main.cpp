@@ -14,6 +14,7 @@
 #include "../Logger.h"
 #include <signal.h>
 #include "SNode.h"
+#include "Planimetry.h"
 
 #define DEF_PORT 51297
 
@@ -23,7 +24,9 @@ using namespace std;
 
 Logger * mainLog;
 
-// Function declariations
+Planimetry planimetry;
+
+// Function declarations
 
 int newSocket(int portno);
 
@@ -138,5 +141,33 @@ void waitForConnection(int socket, int sockPort) {
  */
 void startNode(int newSock, int port) {
     auto newNode = SNode();
+
+    // Receive node's metadata
+    int n = 0;
+    char cmdBuff[100];
+    mainLog->writeLog("Waiting for metadata size to arrive");
+
+    bzero(cmdBuff, sizeof(cmdBuff));
+    n = (int) read(newSock, cmdBuff, 2);
+    if (n <= 0) {
+        mainLog->writeLog("ERROR reading size message or node disconnected");
+        error("ERROR on receiving metadata's size", mainLog);
+        return;
+    }
+
+    int dataSize = atoi(cmdBuff);
+    bzero(cmdBuff, sizeof(cmdBuff));
+    n = (int) read(newSock, cmdBuff, dataSize);
+    if (n < 0) {
+        error("ERROR on receiving metadata", mainLog);
+        return;
+    }
+    // Format: {cpuPower,id,x,z,idUp,idBott,idLeft,idRight}
+    int cpuPow, x, z, id, idUp, idBott, idLeft, idRight;
+    sscanf(cmdBuff, "{%d,%d,%d,%d,%d,%d,%d,%d}", &cpuPow, &id, &x, &z, &idUp, &idBott, &idLeft, &idRight);
+
+    // Add new node to planimetry
+    planimetry.addNode(id, x, z, &newNode, idUp, idBott, idLeft, idRight);
     newNode.start(newSock, port);
+
 }

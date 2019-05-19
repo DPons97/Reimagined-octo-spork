@@ -133,9 +133,9 @@ void CNode::listen() {
                 write(newSock, to_string(getpid()).data(), to_string(getpid()).size());
 
                 // Testing purposes: wait key to be pressed before starting
-                char unlock;
-                printf("Press enter to continue");
-                scanf("%c", &unlock);
+                //char unlock;
+                //printf("Press enter to continue");
+                //scanf("%c", &unlock);
 
                 execvp(path.data(), args.data());
 
