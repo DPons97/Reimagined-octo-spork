@@ -14,6 +14,7 @@ typedef struct NODE {
     int ID;
     int x;
     int z;
+    int cpuPower;
     NODE * up;
     NODE * bottom;
     NODE * left;
@@ -28,7 +29,7 @@ public:
 
     Planimetry();
 
-    void addNode(int ID, int x, int z, SNode *toAdd, int up, int bottom, int left, int right);
+    void addNode(int ID, int cpuPower, int x, int z, SNode *toAdd, int up, int bottom, int left, int right);
 
     Node * getNode(SNode * toFind);
 

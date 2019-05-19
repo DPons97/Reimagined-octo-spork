@@ -28,7 +28,7 @@
  * 2 track
  * 3 identify
  */
-CNode::CNode(int portno, char * hostname,int id, int abs_x, int abs_z, int cpu_power,
+CNode::CNode(int portno, char * hostname, int cpu_power, int id, int abs_x, int abs_z,
              int upNeighbour, int bottomNeighbour, int leftNeighbour, int rightNeighbour) {
     // start connection and create Logger object
     log = new Logger("nodeClient", true);

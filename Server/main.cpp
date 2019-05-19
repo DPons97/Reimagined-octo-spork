@@ -167,7 +167,7 @@ void startNode(int newSock, int port) {
     sscanf(cmdBuff, "{%d,%d,%d,%d,%d,%d,%d,%d}", &cpuPow, &id, &x, &z, &idUp, &idBott, &idLeft, &idRight);
 
     // Add new node to planimetry
-    planimetry.addNode(id, x, z, &newNode, idUp, idBott, idLeft, idRight);
+    planimetry.addNode(id, cpuPow, x, z, &newNode, idUp, idBott, idLeft, idRight);
     newNode.start(newSock, port);
 
 }
