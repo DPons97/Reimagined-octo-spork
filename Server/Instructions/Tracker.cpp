@@ -99,6 +99,14 @@ bool Tracker::getAnswerCoordinates(int trackingSocket, coordinate& outCoords) {
 }
 
 /**
+ * Transform coordinates from absolute to relative to this node
+ * @param toTransform
+ */
+void relToAbsCoords(coordinate& toTransform) {
+    // TODO Implement
+}
+
+/**
  * Save coordinates to file
  */
 void Tracker::saveCoords(string toTrack, std::vector<coordinate> coords) {

@@ -11,20 +11,34 @@
  * @param name -> This instruction's identifier
  */
 Instruction::Instruction(const string &name, const map<int, int> &instructions) : name(name),
-                                                                                  instructions(instructions) {}
+                                                                                  instructions(instructions) {
+    nodeSocket = 0;
+    nodePort = 0;
+    log = new Logger(name, true);
+}
+
+/**
+ *  This instruction's starting point
+ *  @param socket Socket of node which is talking to this instruction
+ *  @param port Port of this instruction
+ *  @param args Vector of arguments to pass to this instruction
+ */
+void Instruction::start(int socket, int port, std::vector<std::string> args){
+    this->nodeSocket = socket;
+    this->nodePort = port;
+
+    log->writeLog(string("[").append(toString()).append("] New instruction created"));
+}
 
 /**
  *  This instruction's starting point
  *  @param socket Socket of node which is talking to this instruction
  *  @param port Port of this instruction
  */
-void Instruction::start(int socket, int port, std::vector<std::string> args){
-    this->nodeSocket = socket;
-    this->nodePort = port;
-
-    log = new Logger(name, true);
-    log->writeLog(string("[").append(toString()).append("] New instruction created"));
+void Instruction::start(int socket, int port) {
+    start(socket, port, std::vector<std::string>());
 }
+
 
 /**
  * Send general purpose message to node through currSocket
