@@ -36,9 +36,11 @@ public:
 
     Instruction(const string &name, const map<int, int> &instructions);
 
-    virtual void start(int nodeSocket, int nodePort, std::vector<std::string> args = std::vector<std::string>());
+    virtual void start(int socket, int port, std::vector<std::string> args);
 
-    string toString();
+    virtual void start(int socket, int port);
+
+    virtual string toString();
 
     virtual ~Instruction();
 

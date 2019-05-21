@@ -8,7 +8,7 @@
 
 #include "Instruction.h"
 
-#include "../DarknetCalculator.h"
+#include "../darknetCPP/DarknetCalculator.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/hal/interface.h>
@@ -19,7 +19,7 @@ class bkgSubtraction : public Instruction {
 public:
     bkgSubtraction(const string &name, const map<int, int> &instructions);
 
-    void start(int nodeSocket, int nodePort, vector<string> args = std::vector<std::string>()) override;
+    void start(int nodeSocket, int nodePort) override;
 
 private:
     void backgroundSubtraction(vector<int> toTrack);

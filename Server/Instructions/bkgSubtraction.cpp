@@ -8,8 +8,8 @@
 bkgSubtraction::bkgSubtraction(const string &name, const map<int, int> &instructions) : Instruction(name,
                                                                                                     instructions) {}
 
-void bkgSubtraction::start(int socket, int port, std::vector<std::string> args) {
-    Instruction::start(socket, port, args);
+void bkgSubtraction::start(int socket, int port) {
+    Instruction::start(socket, port);
 
     /* Type of object to detect
         1 -> person
@@ -168,13 +168,6 @@ bool bkgSubtraction::getAnswerImg(int bkgSocket, cv::Mat& outMat) const {
     }
 
     inMat.data = buffer;
-
-    /*
-    static const std::string kWinName = "Sending images over the SPACE!";
-    namedWindow(kWinName, cv::WINDOW_NORMAL);
-    imshow(kWinName, inMat);
-    cv::waitKey(0);
-    */
 
     outMat = inMat;
     return true;

@@ -8,38 +8,25 @@
 #include "../Logger.h"
 #include <vector>
 #include <map>
-#include "DarknetCalculator.h"
+#include "darknetCPP/DarknetCalculator.h"
+#include "Instructions/Instruction.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/hal/interface.h>
 #include <opencv2/highgui/highgui.hpp>
 
-class SNode {
+class SNode : public Instruction {
 
 public:
-    int currSocket;
+    SNode(const string &name, const map<int, int> &instructions);
 
-    int currPort;
-
-    Logger * log;
-
-    // Map of current open instructions: int PID, int SOCKET
-    std::map<int, int> instructions;
-
-    void start(int nodeSocket, int nodePort);
-
-    const char * toString();
-
-    virtual ~SNode();
+    void start(int nodeSocket, int nodePort) override;
 
 protected:
 
 
 private:
     // Methods
-    bool sendMessage(int instrCode, const std::vector<string> &args = std::vector<string>());
-
-    void disconnect(int instrPid = 0);
 };
 
 

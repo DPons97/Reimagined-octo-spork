@@ -26,6 +26,8 @@ private:
 
     void tracking(string toTrack, int trackPid);
 
+    void relToAbsCoords(coordinate& toTransform);
+
     void saveCoords(string toTrack, std::vector<coordinate> coords);
 
 };

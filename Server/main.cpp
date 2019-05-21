@@ -140,7 +140,7 @@ void waitForConnection(int socket, int sockPort) {
  * @param port of new connection
  */
 void startNode(int newSock, int port) {
-    auto newNode = SNode();
+    auto newNode = SNode(string("SNode"), map<int, int>());
 
     // Receive node's metadata
     int n = 0;
