@@ -28,7 +28,7 @@
  * 2 track
  * 3 identify
  */
-CNode::CNode(int portno, char * hostname, int cpu_power, int id, int abs_x, int abs_z,
+CNode::CNode(int portno, char * hostname, int cpu_power, int id, int abs_x, int abs_z, int theta,
              int upNeighbour, int bottomNeighbour, int leftNeighbour, int rightNeighbour) {
     // start connection and create Logger object
     log = new Logger("nodeClient", true);
@@ -39,7 +39,7 @@ CNode::CNode(int portno, char * hostname, int cpu_power, int id, int abs_x, int 
     readCodeFile();
     sockfd = newSocket(portno);
     string msg = string("{").append(to_string(cpu_power)).append(",").append(to_string(id)).append(",")
-            .append(to_string(abs_x)).append(",").append(to_string(abs_z))
+            .append(to_string(abs_x)).append(",").append(to_string(abs_z)).append(",").append(to_string(theta))
             .append(",").append(to_string(upNeighbour)).append(",").append(to_string(bottomNeighbour))
             .append(",").append(to_string(leftNeighbour)).append(",").append(to_string(rightNeighbour)).append("}");
     int nwrite = write(sockfd, to_string(msg.size()).data(), to_string(msg.size()).size());
