@@ -9,6 +9,7 @@
 #include "Instruction.h"
 
 #include "../darknetCPP/DarknetCalculator.h"
+#include "../Planimetry.h"
 
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/hal/interface.h>
@@ -17,14 +18,22 @@
 class bkgSubtraction : public Instruction {
 
 public:
-    bkgSubtraction(const string &name, const map<int, int> &instructions);
+    bkgSubtraction(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory);
+
+    bkgSubtraction(const string &name, const map<int, int> &instructions, void* sharedMemory);
 
     void start(int nodeSocket, int nodePort) override;
 
 private:
+    Planimetry * planimetry;
+
+    int xImgSize;
+
+    int yImgSize;
+
     void backgroundSubtraction(vector<int> toTrack);
 
-    bool getAnswerImg(int bkgSocket, cv::Mat& outMat) const;
+    bool getAnswerImg(int bkgSocket, cv::Mat& outMat);
 
 };
 

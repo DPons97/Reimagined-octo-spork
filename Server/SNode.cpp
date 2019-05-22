@@ -15,7 +15,16 @@
 #include "SNode.h"
 #include "Instructions/bkgSubtraction.h"
 
-SNode::SNode(const string &name, const map<int, int> &instructions) : Instruction(name, instructions) {}
+SNode::SNode(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory):Instruction(
+        name, instructions, sharedMemory) {
+    planimetry = static_cast<Planimetry *>(sharedMemory[0]);
+}
+
+SNode::SNode(const string &name, const map<int, int> &instructions, void *sharedMemory) : Instruction(
+        name, instructions, sharedMemory) {
+    planimetry = static_cast<Planimetry * >(sharedMemory);
+
+}
 
 /**
  *  Represents a single node
@@ -29,6 +38,8 @@ void SNode::start(int socket, int port) {
     log->writeLog(string("[").append(toString()).append("] New node created"));
 
     // START ALL OPERATIONS
-    auto bkgSubInstr = new bkgSubtraction("bkgSubtraction", instructions);
+    auto bkgSubInstr = new bkgSubtraction("bkgSubtraction", instructions, planimetry);
     bkgSubInstr->start(socket, port);
 }
+
+

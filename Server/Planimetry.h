@@ -2,18 +2,21 @@
 // Created by dpons on 5/19/19.
 //
 
+#pragma once
+
 #ifndef OCTOSPORK_PLANIMETRY_H
 #define OCTOSPORK_PLANIMETRY_H
 
 
 #include "../Logger.h"
-#include "SNode.h"
+#include "Instructions/Instruction.h"
 
 typedef struct NODE {
-    SNode * thisNode;
+    Instruction * thisNode;
     int ID;
     int x;
     int z;
+    int theta;
     int cpuPower;
     NODE * up;
     NODE * bottom;
@@ -22,6 +25,7 @@ typedef struct NODE {
 } Node;
 
 class Planimetry {
+
 public:
     Logger * log;
 
@@ -29,11 +33,13 @@ public:
 
     Planimetry();
 
-    void addNode(int ID, int cpuPower, int x, int z, SNode *toAdd, int up, int bottom, int left, int right);
+    void addNode(int ID, int cpuPower, int x, int z, int theta, Instruction *toAdd, int up, int bottom, int left, int right);
 
-    Node * getNode(SNode * toFind);
+    Node * getNode(Instruction * toFind);
 
     Node *getNode(int toFind);
+
+    Node *getNodeBySocket(int toFind);
 
     ~Planimetry();
 
@@ -41,7 +47,8 @@ protected:
 
 
 private:
-    void freeNode(SNode * toFree);
+
+    void freeNode(Instruction * toFree);
 };
 
 

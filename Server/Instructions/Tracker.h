@@ -7,6 +7,7 @@
 
 
 #include "Instruction.h"
+#include "../Planimetry.h"
 
 typedef struct {
     int x;
@@ -17,11 +18,19 @@ typedef struct {
 
 class Tracker : public Instruction {
 public:
-    Tracker(const string &name, const map<int, int> &instructions);
+    Tracker(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory);
+
+    Tracker(const string &name, const map<int, int> &instructions, void * sharedMemory);
 
     void start(int nodeSocket, int nodePort, std::vector<std::string> args) override;
 
 private:
+    int xImgSize;
+
+    int yImgSize;
+
+    Planimetry * planimetry;
+
     bool getAnswerCoordinates(int trackingSocket, coordinate& outCoords);
 
     void tracking(string toTrack, int trackPid);

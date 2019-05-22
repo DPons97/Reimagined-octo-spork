@@ -6,6 +6,7 @@
 #define OCTOSPORK_INSTRUCTION_H
 
 #include "../../Logger.h"
+
 #include <vector>
 #include <map>
 
@@ -34,7 +35,12 @@ public:
     // Map of current open instructions: int PID, int SOCKET
     std::map<int, int> instructions;
 
-    Instruction(const string &name, const map<int, int> &instructions);
+    // Vector of memory that is shared with this node
+    vector<void*> sharedMemory;
+
+    Instruction(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory);
+
+    Instruction(const string &name, const map<int, int> &instructions, void * sharedMemory);
 
     virtual void start(int socket, int port, std::vector<std::string> args);
 
@@ -43,6 +49,8 @@ public:
     virtual string toString();
 
     virtual ~Instruction();
+
+    int getNodeSocket() const;
 
 protected:
     // Methods

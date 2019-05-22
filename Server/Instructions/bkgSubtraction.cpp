@@ -5,8 +5,16 @@
 #include "bkgSubtraction.h"
 #include "Tracker.h"
 
-bkgSubtraction::bkgSubtraction(const string &name, const map<int, int> &instructions) : Instruction(name,
-                                                                                                    instructions) {}
+bkgSubtraction::bkgSubtraction(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory):Instruction(
+        name, instructions, sharedMemory) {
+    planimetry = static_cast<Planimetry *>(sharedMemory[0]);
+}
+
+bkgSubtraction::bkgSubtraction(const string &name, const map<int, int> &instructions, void *sharedMemory) : Instruction(
+        name, instructions, sharedMemory) {
+    planimetry = static_cast<Planimetry * >(sharedMemory);
+
+}
 
 void bkgSubtraction::start(int socket, int port) {
     Instruction::start(socket, port);
@@ -77,7 +85,10 @@ void bkgSubtraction::backgroundSubtraction(vector<int> toTrack) {
                         vector<string> trackingArgs;
                         trackingArgs.insert(trackingArgs.begin(), labels[j]);
                         trackingArgs.insert(trackingArgs.end(), to_string(j));
-                        auto trackingInstr = new Tracker(string(labels[j]).append("-Tracker"), instructions);
+                        trackingArgs.insert(trackingArgs.end(), to_string(xImgSize));
+                        trackingArgs.insert(trackingArgs.end(), to_string(yImgSize));
+
+                        auto trackingInstr = new Tracker(string(labels[j]).append("-Tracker"), instructions, planimetry);
                         trackingInstr->start(nodeSocket, nodePort, trackingArgs);
 
                         // TODO Track only first object. To be fixed
@@ -105,7 +116,7 @@ void bkgSubtraction::backgroundSubtraction(vector<int> toTrack) {
  * @param outMat Mat that contains the answer image
  * @return True if answer received successfully
  */
-bool bkgSubtraction::getAnswerImg(int bkgSocket, cv::Mat& outMat) const {
+bool bkgSubtraction::getAnswerImg(int bkgSocket, cv::Mat& outMat) {
     int n;
     std::vector<unsigned char> vectBuff;
     char cmdBuff[10];
@@ -138,6 +149,7 @@ bool bkgSubtraction::getAnswerImg(int bkgSocket, cv::Mat& outMat) const {
         return false;
     }
     int cols = atoi(cmdBuff);
+    xImgSize = cols;
     write(bkgSocket, "ready", 5);
 
     log->writeLog("Reading rows");
@@ -148,6 +160,7 @@ bool bkgSubtraction::getAnswerImg(int bkgSocket, cv::Mat& outMat) const {
         return false;
     }
     int rows = atoi(cmdBuff);
+    yImgSize = rows;
     write(bkgSocket, "ready", 5);
 
     cv::Mat inMat = cv::Mat::zeros(rows, cols, CV_8UC3);

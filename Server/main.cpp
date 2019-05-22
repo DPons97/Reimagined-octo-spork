@@ -140,7 +140,7 @@ void waitForConnection(int socket, int sockPort) {
  * @param port of new connection
  */
 void startNode(int newSock, int port) {
-    auto newNode = SNode(string("SNode"), map<int, int>());
+    SNode newNode = SNode(string("SNode"), map<int, int>(), &planimetry);
 
     // Receive node's metadata
     int n = 0;
@@ -163,11 +163,10 @@ void startNode(int newSock, int port) {
         return;
     }
     // Format: {cpuPower,id,x,z,idUp,idBott,idLeft,idRight}
-    int cpuPow, x, z, id, idUp, idBott, idLeft, idRight;
-    sscanf(cmdBuff, "{%d,%d,%d,%d,%d,%d,%d,%d}", &cpuPow, &id, &x, &z, &idUp, &idBott, &idLeft, &idRight);
+    int cpuPow, x, z, theta, id, idUp, idBott, idLeft, idRight;
+    sscanf(cmdBuff, "{%d,%d,%d,%d,%d,%d,%d,%d,%d}", &cpuPow, &id, &x, &z, &theta, &idUp, &idBott, &idLeft, &idRight);
 
     // Add new node to planimetry
-    planimetry.addNode(id, cpuPow, x, z, &newNode, idUp, idBott, idLeft, idRight);
+    planimetry.addNode(id, cpuPow, x, z, theta, &newNode, idUp, idBott, idLeft, idRight);
     newNode.start(newSock, port);
-
 }

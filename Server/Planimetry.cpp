@@ -12,20 +12,23 @@ Planimetry::Planimetry() {
 /**
  * Add new node to planimetry
  * @param ID
+ * @param cpuPower
  * @param x
  * @param z
+ * @param theta
  * @param toAdd
  * @param up
  * @param bottom
  * @param left
  * @param right
  */
-void Planimetry::addNode(int ID, int cpuPower, int x, int z, SNode *toAdd, int up, int bottom, int left, int right) {
+void Planimetry::addNode(int ID, int cpuPower, int x, int z, int theta, Instruction *toAdd, int up, int bottom, int left, int right) {
     for (Node * node : planimetry) {
         if (node->ID == ID && node->thisNode == nullptr) {
             node->thisNode = toAdd;
             node->x = x;
             node->z = z;
+            node->theta = theta;
             node->cpuPower = cpuPower;
             node->up = getNode(up);
             if (node->up != nullptr) node->up->bottom = node;
@@ -47,13 +50,14 @@ void Planimetry::addNode(int ID, int cpuPower, int x, int z, SNode *toAdd, int u
     newNode->cpuPower = cpuPower;
     newNode->x = x;
     newNode->z = z;
+    newNode->theta = theta;
     planimetry.push_back(newNode);
 
     // If no adjacent exists, create new nodes with null SNode
-    if (up != -1 && getNode(up)== nullptr) addNode(up, cpuPower, -1, -1, nullptr, -1, ID, -1, -1);
-    if (bottom != -1 && getNode(bottom) == nullptr) addNode(bottom, cpuPower, -1, -1, nullptr, ID, -1, -1, -1);
-    if (left != -1 && getNode(left) == nullptr) addNode(left, cpuPower, -1, -1, nullptr, -1, -1, -1, ID);
-    if (right != -1 && getNode(right) == nullptr) addNode(right, cpuPower, -1, -1, nullptr, -1, -1, ID, -1);
+    if (up != -1 && getNode(up)== nullptr) addNode(up, cpuPower, -1, -1, -1, nullptr, -1, ID, -1, -1);
+    if (bottom != -1 && getNode(bottom) == nullptr) addNode(bottom, cpuPower, -1, -1, -1, nullptr, ID, -1, -1, -1);
+    if (left != -1 && getNode(left) == nullptr) addNode(left, cpuPower, -1, -1, -1, nullptr, -1, -1, -1, ID);
+    if (right != -1 && getNode(right) == nullptr) addNode(right, cpuPower, -1, -1, -1, nullptr, -1, -1, ID, -1);
 
     newNode->up = getNode(up);
     if (newNode->up != nullptr) newNode->up->bottom = newNode;
@@ -81,16 +85,26 @@ Node *Planimetry::getNode(int toFind) {
  * @param toFind
  * @return node from defined SNode ref
  */
-Node *Planimetry::getNode(SNode *toFind) {
+Node *Planimetry::getNode(Instruction *toFind) {
     for (Node * node : planimetry)
         if (node->thisNode == toFind) return node;
     return nullptr;
 }
 
 /**
+ * @param toFind socket of node to find
+ * @return node from defined SNode ref
+ */
+Node *Planimetry::getNodeBySocket(int toFind) {
+    for (Node * node : planimetry)
+        if (node->thisNode->getNodeSocket() == toFind) return node;
+    return nullptr;
+}
+
+/**
  * @param toFree node to free
  */
-void Planimetry::freeNode(SNode *toFree) {
+void Planimetry::freeNode(Instruction *toFree) {
     Node * nodeToFree = getNode(toFree);
 
     if (toFree != nullptr) free(toFree);
@@ -101,4 +115,5 @@ void Planimetry::freeNode(SNode *toFree) {
  */
 Planimetry::~Planimetry() {
     for (Node * node : planimetry) free(node);
+    delete log;
 }

@@ -10,8 +10,19 @@
  * Default constructor
  * @param name -> This instruction's identifier
  */
-Instruction::Instruction(const string &name, const map<int, int> &instructions) : name(name),
+Instruction::Instruction(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory) : name(name),
+                                                                                  instructions(instructions),
+                                                                                  sharedMemory(sharedMemory) {
+    nodeSocket = 0;
+    nodePort = 0;
+    log = new Logger(name, true);
+}
+
+Instruction::Instruction(const string &name, const map<int, int> &instructions, void *sharedMemory) : name(name),
                                                                                   instructions(instructions) {
+    std::vector<void *> memoryVector;
+    memoryVector.insert(memoryVector.begin(), sharedMemory);
+
     nodeSocket = 0;
     nodePort = 0;
     log = new Logger(name, true);
@@ -206,6 +217,12 @@ string Instruction::toString() {
     return nodeString.append("-").append(std::to_string(nodeSocket));
 }
 
+/**
+ * @return this node's socket
+ */
+int Instruction::getNodeSocket() const {
+    return nodeSocket;
+}
 
 /**
  * Default destructor

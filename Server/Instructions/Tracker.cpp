@@ -2,9 +2,22 @@
 // Created by dpons on 5/19/19.
 //
 
+#include <cmath>
 #include "Tracker.h"
 
-Tracker::Tracker(const string &name, const map<int, int> &instructions) : Instruction(name, instructions) {}
+#define PI 3.1415926
+#define degToRad PI/180
+
+Tracker::Tracker(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory):Instruction(
+        name, instructions, sharedMemory) {
+    planimetry = static_cast<Planimetry *>(sharedMemory[0]);
+}
+
+Tracker::Tracker(const string &name, const map<int, int> &instructions, void *sharedMemory) : Instruction(
+        name, instructions, sharedMemory) {
+    planimetry = static_cast<Planimetry * >(sharedMemory);
+
+}
 
 /**
  * Starting point of tracker
@@ -13,9 +26,14 @@ Tracker::Tracker(const string &name, const map<int, int> &instructions) : Instru
  * @param args arguments:
  *          args[0] -> object's name to track
  *          args[1] -> object's index to track
+ *          args[2] -> frame size X
+ *          args[3] -> frame size Y
  */
 void Tracker::start(int nodeSocket, int nodePort, std::vector<std::string> args) {
     Instruction::start(nodeSocket, nodePort, args);
+
+    xImgSize = atoi(args[2].data());
+    yImgSize = atoi(args[3].data());
 
     std::vector<std::string> objectString;
     objectString.insert(objectString.begin(), args[1]);
@@ -55,6 +73,16 @@ void Tracker::tracking(string toTrack, int trackPid) {
         // Store coordinates
         coordinates.push_back(newCoordinate);
     }
+
+    // Get last coordinate
+    coordinate lastCoord = coordinates[coordinates.size() - 1];
+
+    // Alien zone definition (tracked object has dematerialized)
+
+
+
+    // Relative to absolute coordinates
+    for (coordinate coord : coordinates) relToAbsCoords(coord);
 
     // Save coordinates to file
     saveCoords(toTrack, coordinates);
@@ -102,8 +130,15 @@ bool Tracker::getAnswerCoordinates(int trackingSocket, coordinate& outCoords) {
  * Transform coordinates from absolute to relative to this node
  * @param toTransform
  */
-void relToAbsCoords(coordinate& toTransform) {
-    // TODO Implement
+void Tracker::relToAbsCoords(coordinate& toTransform) {
+    Node * thisNode = planimetry->getNodeBySocket(nodeSocket);
+
+    // Translate and rotate coordinates
+    toTransform.x = ((int) (toTransform.x * cos(thisNode->theta * degToRad) +
+            toTransform.z * sin(thisNode->theta * degToRad))) + thisNode->x;
+
+    toTransform.z = ((int) (toTransform.z * cos(thisNode->theta * degToRad) -
+            toTransform.x * sin(thisNode->theta * degToRad))) + thisNode->z;
 }
 
 /**

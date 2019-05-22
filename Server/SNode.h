@@ -2,23 +2,25 @@
 // Created by dpons on 3/24/19.
 //
 
+#pragma once
+
 #ifndef OCTOSPORK_CONNECTION_H
 #define OCTOSPORK_CONNECTION_H
 
-#include "../Logger.h"
+#include "Instructions/Instruction.h"
 #include <vector>
 #include <map>
 #include "darknetCPP/DarknetCalculator.h"
-#include "Instructions/Instruction.h"
+#include "Planimetry.h"
 
-#include <opencv2/core/core.hpp>
-#include <opencv2/core/hal/interface.h>
-#include <opencv2/highgui/highgui.hpp>
 
 class SNode : public Instruction {
 
 public:
-    SNode(const string &name, const map<int, int> &instructions);
+
+    SNode(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory);
+
+    SNode(const string &name, const map<int, int> &instructions, void * sharedMemory);
 
     void start(int nodeSocket, int nodePort) override;
 
@@ -26,6 +28,9 @@ protected:
 
 
 private:
+    // This server node's planimetry
+    Planimetry * planimetry;
+
     // Methods
 };
 
