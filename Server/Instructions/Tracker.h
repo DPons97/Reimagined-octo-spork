@@ -18,9 +18,9 @@ typedef struct {
 
 class Tracker : public Instruction {
 public:
-    Tracker(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory);
-
     Tracker(const string &name, const map<int, int> &instructions, void * sharedMemory);
+
+    Tracker(const string &name, const map<int, int> &instructions, void * sharedMemory, string fileToWrite);
 
     void start(int nodeSocket, int nodePort, std::vector<std::string> args) override;
 
@@ -30,6 +30,12 @@ private:
     int yImgSize;
 
     Planimetry * planimetry;
+
+    string trackingName;
+
+    int trackingID;
+
+    string fileName;
 
     bool getAnswerCoordinates(int trackingSocket, coordinate& outCoords);
 

@@ -32,6 +32,8 @@
 
 #define PIXEL_COMPRSSION_RATE 3
 
+#define EMPTY_FRAMES_TO_STOP 5
+
 
 #define FRAME_FILE "../Client/Executables/resources/curr_frame.txt"
 
@@ -147,7 +149,7 @@ int main(int argc, char** argv) {
 
         // Remove the bounding boxes with low confidence
         postprocess(frame, outs);
-        if (empty_frames >= 3 ) break;
+        if (empty_frames >= EMPTY_FRAMES_TO_STOP ) break;
 
     }
     sendTrackPoints();

@@ -24,6 +24,8 @@ public:
 
     void start(int nodeSocket, int nodePort) override;
 
+    void track(const string& fileName, std::vector<std::string> args);
+
 protected:
 
 

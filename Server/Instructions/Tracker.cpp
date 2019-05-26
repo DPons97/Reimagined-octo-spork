@@ -1,22 +1,33 @@
+#include <utility>
+
 //
 // Created by dpons on 5/19/19.
 //
 
 #include <cmath>
 #include "Tracker.h"
+#include "../SNode.h"
 
 #define PI 3.1415926
-#define degToRad PI/180
-
-Tracker::Tracker(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory):Instruction(
-        name, instructions, sharedMemory) {
-    planimetry = static_cast<Planimetry *>(sharedMemory[0]);
-}
+#define DEGTORAD PI/180
+#define BORDER_ZONE 10
 
 Tracker::Tracker(const string &name, const map<int, int> &instructions, void *sharedMemory) : Instruction(
         name, instructions, sharedMemory) {
+    xImgSize = 0;
+    yImgSize = 0;
+    trackingID = 0;
     planimetry = static_cast<Planimetry * >(sharedMemory);
+    fileName = "";
+}
 
+Tracker::Tracker(const string &name, const map<int, int> &instructions, void * sharedMemory, string fileToWrite) :
+        Instruction(name, instructions, sharedMemory){
+    xImgSize = 0;
+    yImgSize = 0;
+    trackingID = 0;
+    planimetry = static_cast<Planimetry * >(sharedMemory);
+    fileName = std::move(fileToWrite);
 }
 
 /**
@@ -35,11 +46,14 @@ void Tracker::start(int nodeSocket, int nodePort, std::vector<std::string> args)
     xImgSize = atoi(args[2].data());
     yImgSize = atoi(args[3].data());
 
+    trackingName = args[0];
+    trackingID = atoi(args[1].data());
+
     std::vector<std::string> objectString;
     objectString.insert(objectString.begin(), args[1]);
 
     int trackingPid = startInstruction(2, objectString);
-    tracking(args[0], trackingPid);
+    tracking(trackingName, trackingPid);
 }
 
 /**
@@ -65,27 +79,73 @@ void Tracker::tracking(string toTrack, int trackPid) {
 
         coordsAvailable = getAnswerCoordinates(trackSocket, newCoordinate);
 
-        log->writeLog(string("Arrived coordinates: x = ").append(to_string(newCoordinate.x)
-                                                                         .append(", y = ").append(to_string(newCoordinate.y))
-                                                                         .append(", z = ").append(to_string(newCoordinate.z))
-                                                                         .append(", confidence = ").append(to_string(newCoordinate.confidence))));
+        if (coordsAvailable) {
+            log->writeLog(string("Arrived coordinates: x = ").append(to_string(newCoordinate.x)
+                                                                             .append(", y = ").append(to_string(newCoordinate.y))
+                                                                             .append(", z = ").append(to_string(newCoordinate.z))
+                                                                             .append(", confidence = ").append(to_string(newCoordinate.confidence))));
 
-        // Store coordinates
-        coordinates.push_back(newCoordinate);
+            // Store coordinates
+            coordinates.push_back(newCoordinate);
+        }
     }
 
     // Get last coordinate
     coordinate lastCoord = coordinates[coordinates.size() - 1];
 
     // Alien zone definition (tracked object has dematerialized)
+    double leftMargin = xImgSize * (BORDER_ZONE / 100.0);
+    double rightMargin = xImgSize * (1 - BORDER_ZONE/100.0);
+    double bottomMargin = yImgSize * (BORDER_ZONE / 100.0);
+    double topMargin = yImgSize * (1 - BORDER_ZONE/100.0);
 
+    vector<string> trackingArgs;
+    trackingArgs.insert(trackingArgs.begin(), trackingName);
+    trackingArgs.insert(trackingArgs.end(), to_string(trackingID));
 
+    // CHANGE THIS IF CLIENTS HAVE DIFFERENT IMAGE SIZES
+    trackingArgs.insert(trackingArgs.end(), to_string(xImgSize));
+    trackingArgs.insert(trackingArgs.end(), to_string(yImgSize));
 
     // Relative to absolute coordinates
     for (coordinate coord : coordinates) relToAbsCoords(coord);
 
-    // Save coordinates to file
+    // Save coordinates to file and assign file name
     saveCoords(toTrack, coordinates);
+
+    auto thisNode = planimetry->getNodeBySocket(nodeSocket);
+    if (lastCoord.x <= leftMargin) {
+        log->writeLog("Object left frame to the left");
+        // Start tracking to left side
+        if (thisNode->left->thisNode != nullptr) {
+            log->writeLog("Keep tracking to the left of this node");
+            dynamic_cast<SNode *>(thisNode->left->thisNode)->track(fileName, trackingArgs);
+        }
+    } else if (lastCoord.x >= rightMargin) {
+        log->writeLog("Object left frame to the right");
+
+        // Start tracking to right side
+        if (thisNode->right->thisNode != nullptr) {
+            log->writeLog("Keep tracking to the right of this node");
+            dynamic_cast<SNode *>(thisNode->right->thisNode)->track(fileName, trackingArgs);
+        }
+    } else if (lastCoord.y >= topMargin) {
+        log->writeLog("Object left frame to the top");
+
+        // Start tacking to top side
+        if (thisNode->up->thisNode != nullptr) {
+            log->writeLog("Keep tracking to the up of this node");
+            dynamic_cast<SNode *>(thisNode->up->thisNode)->track(fileName, trackingArgs);
+        }
+    } else if (lastCoord.y <= bottomMargin) {
+        log->writeLog("Object left frame to the bottom");
+
+        // Start tracking to bottom side
+        if (thisNode->bottom->thisNode != nullptr) {
+            log->writeLog("Keep tracking to the bottom of this node");
+            dynamic_cast<SNode *>(thisNode->bottom->thisNode)->track(fileName, trackingArgs);
+        }
+    }
 
     instructions[trackPid] = -1;
     close(trackSocket);
@@ -110,7 +170,7 @@ bool Tracker::getAnswerCoordinates(int trackingSocket, coordinate& outCoords) {
     }
 
     if (strcmp(cmdBuff, "0") == 0) {
-        log->writeLog("No more coordinates. Disconnecting...");
+        log->writeLog("No more coordinates available");
         return false;
     }
 
@@ -134,11 +194,11 @@ void Tracker::relToAbsCoords(coordinate& toTransform) {
     Node * thisNode = planimetry->getNodeBySocket(nodeSocket);
 
     // Translate and rotate coordinates
-    toTransform.x = ((int) (toTransform.x * cos(thisNode->theta * degToRad) +
-            toTransform.z * sin(thisNode->theta * degToRad))) + thisNode->x;
+    toTransform.x = ((int) (toTransform.x * cos(thisNode->theta * DEGTORAD) +
+            toTransform.z * sin(thisNode->theta * DEGTORAD))) + thisNode->x;
 
-    toTransform.z = ((int) (toTransform.z * cos(thisNode->theta * degToRad) -
-            toTransform.x * sin(thisNode->theta * degToRad))) + thisNode->z;
+    toTransform.z = ((int) (toTransform.z * cos(thisNode->theta * DEGTORAD) -
+            toTransform.x * sin(thisNode->theta * DEGTORAD))) + thisNode->z;
 }
 
 /**
@@ -146,7 +206,7 @@ void Tracker::relToAbsCoords(coordinate& toTransform) {
  */
 void Tracker::saveCoords(string toTrack, std::vector<coordinate> coords) {
     auto stream = new fstream();
-    string fileName;
+    bool definedFile = false;
 
     // Get current time
     auto CurrentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -154,7 +214,10 @@ void Tracker::saveCoords(string toTrack, std::vector<coordinate> coords) {
     // Format current time as Day/Month/DayNr_hh:dd:ss:Yr.Log
     auto FormattedTime = std::ctime(&CurrentTime);
 
-    fileName.assign("Coordinates/tracking_").append(FormattedTime);
+    if (fileName.empty()) {
+        fileName.assign("Coordinates/tracking_").append(FormattedTime);
+        definedFile = true;
+    }
 
     // Replace spaces with underscores
     for (char &c : fileName) {
@@ -171,8 +234,14 @@ void Tracker::saveCoords(string toTrack, std::vector<coordinate> coords) {
     // Open log file
     stream->open(fileName.data(), ios::out);
 
-    string toWrite = string("Tracking: ").append(toTrack).append("\n");
-    stream->write(toWrite.data(), toWrite.length());
+    string toWrite;
+    if (!definedFile) {
+        toWrite = string("Tracking: ").append(toTrack).append("\n");
+        stream->write(toWrite.data(), toWrite.length());
+    } else {
+        stream->seekp(0, ios::end);
+    }
+
     for (coordinate c : coords) {
         toWrite = string("x = ")
                 .append(to_string(c.x)

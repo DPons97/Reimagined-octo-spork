@@ -14,6 +14,7 @@
 
 #include "SNode.h"
 #include "Instructions/bkgSubtraction.h"
+#include "Instructions/Tracker.h"
 
 SNode::SNode(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory):Instruction(
         name, instructions, sharedMemory) {
@@ -42,4 +43,12 @@ void SNode::start(int socket, int port) {
     bkgSubInstr->start(socket, port);
 }
 
-
+/**
+ * Start new tracking job from another node
+ * @param fileName name of file to write coordinates into
+ * @param args tracking arguments
+ */
+void SNode::track(const string& fileName, std::vector<std::string> args) {
+    auto trackingInstr = new Tracker(args[0].append("-Tracker"), instructions, planimetry, fileName);
+    trackingInstr->start(nodeSocket, nodePort, args);
+}
