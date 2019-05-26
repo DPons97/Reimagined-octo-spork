@@ -5,6 +5,7 @@
 //
 
 #include "Instruction.h"
+std::mutex Instruction::instrLock;
 
 /**
  * Default constructor
@@ -115,6 +116,7 @@ bool Instruction::getAnswerCode(string& outCode, int instrSocket) {
  * @return PID of Client's new process if sending was successful, -1 if there was an error (see log for more info)
  */
 int Instruction::startInstruction(int instrCode, std::vector<string> args) {
+    instrLock.lock();
     // Find first free port
     int assignedPort = nodePort + 1;
 
@@ -173,6 +175,7 @@ int Instruction::startInstruction(int instrCode, std::vector<string> args) {
 
     if (newSock < 0) {
         log->writeLog(std::string("[").append(toString()).append("] Error on binding new socket"));
+        instrLock.unlock();
         return -1;
     } else {
         std::string answer;
@@ -183,6 +186,7 @@ int Instruction::startInstruction(int instrCode, std::vector<string> args) {
 
         instructions.insert(it, pair<int, int>(clientPid, newSock));
         log->writeLog(std::string("[").append(toString()).append("] Connection accepted. Starting job..."));
+        instrLock.unlock();
         return clientPid;
     }
 }

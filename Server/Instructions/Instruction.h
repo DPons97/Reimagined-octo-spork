@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <thread>
+#include <mutex>
 #include <dirent.h>
 #include <sys/stat.h>
 
@@ -53,6 +54,8 @@ public:
     int getNodeSocket() const;
 
 protected:
+    static std::mutex instrLock;
+
     // Methods
     bool sendMessage(int instrCode, const std::vector<string> &args = std::vector<string>());
 
