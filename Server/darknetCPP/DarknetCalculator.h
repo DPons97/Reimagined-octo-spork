@@ -7,6 +7,7 @@
 
 #include "darknet.h"
 #include <opencv2/core/mat.hpp>
+#include <mutex>
 
 class DarknetCalculator {
 
@@ -22,6 +23,9 @@ public:
 
 
 private:
+    // Network mutex
+    static std::mutex networkMutex;
+
     // Path to data file.
     char * cfg_data;
 
@@ -35,7 +39,7 @@ private:
     char * names_file;
 
     // Pointer to loaded darknet network
-    network * net;
+    static network * net;
 
     // Define thresholds for predicted class.
     float thresh;

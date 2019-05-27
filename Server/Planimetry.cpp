@@ -97,7 +97,8 @@ Node *Planimetry::getNode(Instruction *toFind) {
  */
 Node *Planimetry::getNodeBySocket(int toFind) {
     for (Node * node : planimetry)
-        if (node->thisNode->getNodeSocket() == toFind) return node;
+        if (node->thisNode != nullptr &&
+            node->thisNode->getNodeSocket() == toFind) return node;
     return nullptr;
 }
 

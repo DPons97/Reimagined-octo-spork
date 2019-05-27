@@ -91,6 +91,7 @@ void Tracker::tracking(string toTrack, int trackPid) {
     }
 
     // Get last coordinate
+    if (coordinates.empty()) return;
     coordinate lastCoord = coordinates[coordinates.size() - 1];
 
     // Alien zone definition (tracked object has dematerialized)
