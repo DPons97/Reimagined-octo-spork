@@ -20,10 +20,12 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/video.hpp>
 #include <time.h>
+#include <chrono>
 
 //#define FRAME_NAME "/home/dpons/Documents/Programming/OctoSpork/Executables/resources/frames/frame"
-#define FRAME_NAME "../Client/Executables/resources/cam1/frame"
+#define FRAME_NAME "../Client/Executables/resources/cam2/frame"
 #define FRAME_FILE "../Client/Executables/resources/curr_frame.txt"
+#define  FPS 30
 
 using namespace  cv;
 using namespace std;
@@ -160,18 +162,25 @@ bool sendImage(Mat image){
 
 void initCurrFrame(){
     FILE *f = fopen(FRAME_FILE, "r");
-    fscanf(f, "%ld", &currFrame);
-    fclose(f);
+    long int lastFrame;
+    long int last_ms;
 
-    //currFrame = 1;
+    fscanf(f, "%ld %ld", &lastFrame, &last_ms);
+    long int now_ms = std::chrono::duration_cast< std::chrono::milliseconds >(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+    currFrame = lastFrame + ((double) (now_ms -last_ms)/1000)*FPS;
+    fclose(f);
 }
 
 void saveCurrFrame(){
     FILE *f = fopen(FRAME_FILE, "w");
-    fprintf(f, "%ld", currFrame);
+    long int now_ms = std::chrono::duration_cast< std::chrono::milliseconds >(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+    fprintf(f, "%ld %ld", currFrame, now_ms);
     mylog->writeLog(string("Saving current frame number ").append(to_string(currFrame)));
     fclose(f);
 }
+
 
 bool waitForConfirm() {
     char cmdBuff[10];

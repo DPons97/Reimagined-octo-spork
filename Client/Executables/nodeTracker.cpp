@@ -22,7 +22,7 @@
 #include "../../Logger.h"
 #include <signal.h>
 
-#define FRAME_NAME "../Client/Executables/resources/cam1/frame"
+#define FRAME_NAME "../Client/Executables/resources/cam2/frame"
 
 // meters !!
 #define FOCAL_LENGTH 0.025
@@ -33,6 +33,8 @@
 #define PIXEL_COMPRSSION_RATE 3
 
 #define EMPTY_FRAMES_TO_STOP 5
+
+#define FPS 30
 
 
 #define FRAME_FILE "../Client/Executables/resources/curr_frame.txt"
@@ -120,7 +122,7 @@ int main(int argc, char** argv) {
 
     // Load the network
     Net net = readNetFromDarknet(modelConfiguration, modelWeights);
-    net.setPreferableBackend(DNN_BACKEND_OPENCV);
+    net.setPreferableBackend(dnn::DNN_BACKEND_OPENCV);
     net.setPreferableTarget(DNN_TARGET_CPU);
 
     string outputFile;
@@ -167,7 +169,7 @@ string nextImg(){
         ellapsedTime = ((double) (clock() - lastTime)/CLOCKS_PER_SEC ) + toSleep;
         //mylog->writeLog(string("ellapsed time: ").append(to_string(ellapsedTime)));
     }
-    if(lastTime != 0) currFrame = currFrame + ellapsedTime * 30;
+    if(lastTime != 0) currFrame = currFrame + ellapsedTime * FPS;
     lastTime = clock();
     string to_ret = string(FRAME_NAME).append(to_string(currFrame)).append(".jpg");
     mylog->writeLog(to_ret);
@@ -176,13 +178,21 @@ string nextImg(){
 
 void initCurrFrame(){
     FILE *f = fopen(FRAME_FILE, "r");
-    fscanf(f, "%ld", &currFrame);
+    long int lastFrame;
+    long int last_ms;
+    
+    fscanf(f, "%ld %ld", &lastFrame, &last_ms);
+    long int now_ms = std::chrono::duration_cast< std::chrono::milliseconds >(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+    currFrame = lastFrame + ((double) (now_ms -last_ms)/1000)*FPS;
     fclose(f);
 }
 
 void saveCurrFrame(){
     FILE *f = fopen(FRAME_FILE, "w");
-    fprintf(f, "%ld", currFrame);
+    long int now_ms = std::chrono::duration_cast< std::chrono::milliseconds >(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+    fprintf(f, "%ld %ld", currFrame, now_ms);
     mylog->writeLog(string("Saving current frame number ").append(to_string(currFrame)));
     fclose(f);
 }
