@@ -22,7 +22,7 @@
 #include "../../Logger.h"
 #include <signal.h>
 
-#define FRAME_NAME "../Client/Executables/resources/cam2/frame"
+#define FRAME_NAME "../Client/Executables/resources/cam1/frame"
 
 // meters !!
 #define FOCAL_LENGTH 0.025
@@ -32,7 +32,7 @@
 
 #define PIXEL_COMPRSSION_RATE 3
 
-#define EMPTY_FRAMES_TO_STOP 5
+#define EMPTY_FRAMES_TO_STOP 8
 
 #define FPS 30
 
@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
     mylog = new Logger(string("node_tracker_").append(to_string(currFrame)),true);
     signal(SIGTERM, handler);
     sockfd = atoi(argv[1]);
-    track_class = atoi(argv[2]);     // TODO: get object to track via socket
+    track_class = atoi(argv[2]);
 
     track_points = new list<track_point>;
 
@@ -162,7 +162,7 @@ int main(int argc, char** argv) {
 string nextImg(){
     double ellapsedTime = ((double) (clock() - lastTime)/CLOCKS_PER_SEC );
     //mylog->writeLog(string("ellapsed time: ").append(to_string(ellapsedTime)));
-    double toSleep = (0.16667-ellapsedTime);
+    double toSleep = (1-ellapsedTime);
     //mylog->writeLog(string("toSleep: ").append(to_string(toSleep)));
     if (toSleep > 0 ) {
         usleep(toSleep * 1000000);
@@ -182,9 +182,13 @@ void initCurrFrame(){
     long int last_ms;
     
     fscanf(f, "%ld %ld", &lastFrame, &last_ms);
-    long int now_ms = std::chrono::duration_cast< std::chrono::milliseconds >(
-            std::chrono::system_clock::now().time_since_epoch()).count();
-    currFrame = lastFrame + ((double) (now_ms -last_ms)/1000)*FPS;
+
+    if (last_ms > 0) {
+        long int now_ms = std::chrono::duration_cast< std::chrono::milliseconds >(
+                std::chrono::system_clock::now().time_since_epoch()).count();
+        currFrame = lastFrame + ((double) (now_ms -last_ms)/1000)*FPS;
+    } else currFrame = lastFrame;
+
     fclose(f);
 }
 

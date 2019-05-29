@@ -23,7 +23,7 @@
 #include <chrono>
 
 //#define FRAME_NAME "/home/dpons/Documents/Programming/OctoSpork/Executables/resources/frames/frame"
-#define FRAME_NAME "../Client/Executables/resources/cam2/frame"
+#define FRAME_NAME "../Client/Executables/resources/cam1/frame"
 #define FRAME_FILE "../Client/Executables/resources/curr_frame.txt"
 #define  FPS 30
 
@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
 string nextImg(){
     double ellapsedTime = ((double) (clock() - lastTime)/CLOCKS_PER_SEC );
     //mylog->writeLog(string("ellapsed time: ").append(to_string(ellapsedTime)));
-    double toSleep = (0.16667-ellapsedTime);
+    double toSleep = (0.25-ellapsedTime);
     //mylog->writeLog(string("toSleep: ").append(to_string(toSleep)));
     if (toSleep > 0 ) {
         usleep(toSleep * 1000000);
@@ -166,9 +166,13 @@ void initCurrFrame(){
     long int last_ms;
 
     fscanf(f, "%ld %ld", &lastFrame, &last_ms);
-    long int now_ms = std::chrono::duration_cast< std::chrono::milliseconds >(
-            std::chrono::system_clock::now().time_since_epoch()).count();
-    currFrame = lastFrame + ((double) (now_ms -last_ms)/1000)*FPS;
+
+    if (last_ms > 0) {
+        long int now_ms = std::chrono::duration_cast< std::chrono::milliseconds >(
+                std::chrono::system_clock::now().time_since_epoch()).count();
+        currFrame = lastFrame + ((double) (now_ms -last_ms)/1000)*FPS;
+    } else currFrame = lastFrame;
+
     fclose(f);
 }
 

@@ -49,6 +49,6 @@ void SNode::start(int socket, int port) {
  * @param args tracking arguments
  */
 void SNode::track(const string& fileName, std::vector<std::string> args) {
-    auto trackingInstr = new Tracker(args[0].append("-Tracker"), instructions, planimetry, fileName);
+    auto trackingInstr = new Tracker(args[0] + "-Tracker", instructions, planimetry, fileName);
     trackingInstr->start(nodeSocket, nodePort, args);
 }

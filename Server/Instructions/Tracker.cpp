@@ -10,7 +10,7 @@
 
 #define PI 3.1415926
 #define DEGTORAD PI/180
-#define BORDER_ZONE 10
+#define BORDER_ZONE 30
 
 Tracker::Tracker(const string &name, const map<int, int> &instructions, void *sharedMemory) : Instruction(
         name, instructions, sharedMemory) {
@@ -34,7 +34,7 @@ Tracker::Tracker(const string &name, const map<int, int> &instructions, void * s
  * Starting point of tracker
  * @param nodeSocket socket of node
  * @param nodePort node's port
- * @param args arguments:
+ * @param args arguments:tCoord = coordinates[c
  *          args[0] -> object's name to track
  *          args[1] -> object's index to track
  *          args[2] -> frame size X
@@ -65,7 +65,7 @@ void Tracker::tracking(string toTrack, int trackPid) {
     vector<coordinate> coordinates;
     int trackSocket = instructions[trackPid];
 
-    log->writeLog(string("Tracking: ").append(toTrack));
+    log->writeLog("[" + toString() + "] " + string("Tracking: ").append(toTrack));
 
     bool coordsAvailable = true;
     while (coordsAvailable) {
@@ -116,34 +116,34 @@ void Tracker::tracking(string toTrack, int trackPid) {
 
     auto thisNode = planimetry->getNodeBySocket(nodeSocket);
     if (lastCoord.x <= leftMargin) {
-        log->writeLog("Object left frame to the left");
+        log->writeLog("[" + toString() + "] Object left frame to the left");
         // Start tracking to left side
         if (thisNode->left->thisNode != nullptr) {
-            log->writeLog("Keep tracking to the left of this node");
+            log->writeLog("[" + toString() + "] Keep tracking to the left of this node");
             dynamic_cast<SNode *>(thisNode->left->thisNode)->track(fileName, trackingArgs);
         }
     } else if (lastCoord.x >= rightMargin) {
-        log->writeLog("Object left frame to the right");
+        log->writeLog("[" + toString() + "] Object left frame to the right");
 
         // Start tracking to right side
         if (thisNode->right->thisNode != nullptr) {
-            log->writeLog("Keep tracking to the right of this node");
+            log->writeLog("[" + toString() + "] Keep tracking to the right of this node");
             dynamic_cast<SNode *>(thisNode->right->thisNode)->track(fileName, trackingArgs);
         }
     } else if (lastCoord.y >= topMargin) {
-        log->writeLog("Object left frame to the top");
+        log->writeLog("[" + toString() + "] Object left frame to the top");
 
         // Start tacking to top side
         if (thisNode->up->thisNode != nullptr) {
-            log->writeLog("Keep tracking to the up of this node");
+            log->writeLog("[" + toString() + "] Keep tracking to the up of this node");
             dynamic_cast<SNode *>(thisNode->up->thisNode)->track(fileName, trackingArgs);
         }
     } else if (lastCoord.y <= bottomMargin) {
-        log->writeLog("Object left frame to the bottom");
+        log->writeLog("[" + toString() + "] Object left frame to the bottom");
 
         // Start tracking to bottom side
         if (thisNode->bottom->thisNode != nullptr) {
-            log->writeLog("Keep tracking to the bottom of this node");
+            log->writeLog("[" + toString() + "] Keep tracking to the bottom of this node");
             dynamic_cast<SNode *>(thisNode->bottom->thisNode)->track(fileName, trackingArgs);
         }
     }
@@ -207,17 +207,18 @@ void Tracker::relToAbsCoords(coordinate& toTransform) {
  */
 void Tracker::saveCoords(string toTrack, std::vector<coordinate> coords) {
     auto stream = new fstream();
-    bool definedFile = false;
+    bool definedFile = true;
 
     // Get current time
     auto CurrentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
     // Format current time as Day/Month/DayNr_hh:dd:ss:Yr.Log
-    auto FormattedTime = std::ctime(&CurrentTime);
+    auto FormattedTime = string(std::ctime(&CurrentTime));
+    FormattedTime.erase(FormattedTime.end()-1, FormattedTime.end());
 
     if (fileName.empty()) {
         fileName.assign("Coordinates/tracking_").append(FormattedTime);
-        definedFile = true;
+        definedFile = false;
     }
 
     // Replace spaces with underscores
@@ -232,15 +233,18 @@ void Tracker::saveCoords(string toTrack, std::vector<coordinate> coords) {
         mkdir("Coordinates/", 0777);
     } else closedir(LogDir);
 
-    // Open log file
-    stream->open(fileName.data(), ios::out);
-
+    // Open coords file
     string toWrite;
     if (!definedFile) {
-        toWrite = string("Tracking: ").append(toTrack).append("\n");
+        stream->open(fileName.data(), ios::out);
+
+        toWrite = string("[" + toString() + "] " + string("Tracking: ").append(toTrack).append("\n"));
         stream->write(toWrite.data(), toWrite.length());
     } else {
-        stream->seekp(0, ios::end);
+        stream->open(fileName.data(), ios::app);
+
+        toWrite = string("Tracking results from [" + toString() + "] " + ": \n");
+        stream->write(toWrite.data(), toWrite.length());
     }
 
     for (coordinate c : coords) {
