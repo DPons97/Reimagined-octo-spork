@@ -217,7 +217,7 @@ void Tracker::saveCoords(string toTrack, std::vector<coordinate> coords) {
     FormattedTime.erase(FormattedTime.end()-1, FormattedTime.end());
 
     if (fileName.empty()) {
-        fileName.assign("Coordinates/" + to_string(planimetry->getNodeBySocket(nodeSocket)->ID)).append(FormattedTime);
+        fileName.assign("Coordinates/TrackingID_" + to_string(planimetry->getNodeBySocket(nodeSocket)->ID) + "_").append(FormattedTime);
         definedFile = false;
     }
 
