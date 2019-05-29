@@ -10,7 +10,7 @@
 
 #define PI 3.1415926
 #define DEGTORAD PI/180
-#define BORDER_ZONE 30
+#define BORDER_ZONE 20      // Tweak this to increase tracking accuracy
 
 Tracker::Tracker(const string &name, const map<int, int> &instructions, void *sharedMemory) : Instruction(
         name, instructions, sharedMemory) {
@@ -118,7 +118,7 @@ void Tracker::tracking(string toTrack, int trackPid) {
     if (lastCoord.x <= leftMargin) {
         log->writeLog("[" + toString() + "] Object left frame to the left");
         // Start tracking to left side
-        if (thisNode->left->thisNode != nullptr) {
+        if (thisNode->left != nullptr && thisNode->left->thisNode != nullptr) {
             log->writeLog("[" + toString() + "] Keep tracking to the left of this node");
             dynamic_cast<SNode *>(thisNode->left->thisNode)->track(fileName, trackingArgs);
         }
@@ -126,7 +126,7 @@ void Tracker::tracking(string toTrack, int trackPid) {
         log->writeLog("[" + toString() + "] Object left frame to the right");
 
         // Start tracking to right side
-        if (thisNode->right->thisNode != nullptr) {
+        if (thisNode->right != nullptr && thisNode->right->thisNode != nullptr) {
             log->writeLog("[" + toString() + "] Keep tracking to the right of this node");
             dynamic_cast<SNode *>(thisNode->right->thisNode)->track(fileName, trackingArgs);
         }
@@ -134,7 +134,7 @@ void Tracker::tracking(string toTrack, int trackPid) {
         log->writeLog("[" + toString() + "] Object left frame to the top");
 
         // Start tacking to top side
-        if (thisNode->up->thisNode != nullptr) {
+        if (thisNode->up != nullptr && thisNode->up->thisNode != nullptr) {
             log->writeLog("[" + toString() + "] Keep tracking to the up of this node");
             dynamic_cast<SNode *>(thisNode->up->thisNode)->track(fileName, trackingArgs);
         }
@@ -142,7 +142,7 @@ void Tracker::tracking(string toTrack, int trackPid) {
         log->writeLog("[" + toString() + "] Object left frame to the bottom");
 
         // Start tracking to bottom side
-        if (thisNode->bottom->thisNode != nullptr) {
+        if (thisNode->bottom != nullptr && thisNode->bottom->thisNode != nullptr) {
             log->writeLog("[" + toString() + "] Keep tracking to the bottom of this node");
             dynamic_cast<SNode *>(thisNode->bottom->thisNode)->track(fileName, trackingArgs);
         }
@@ -217,7 +217,7 @@ void Tracker::saveCoords(string toTrack, std::vector<coordinate> coords) {
     FormattedTime.erase(FormattedTime.end()-1, FormattedTime.end());
 
     if (fileName.empty()) {
-        fileName.assign("Coordinates/tracking_").append(FormattedTime);
+        fileName.assign("Coordinates/" + to_string(planimetry->getNodeBySocket(nodeSocket)->ID)).append(FormattedTime);
         definedFile = false;
     }
 

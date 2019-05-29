@@ -49,6 +49,8 @@ protected:
 private:
 
     void freeNode(Instruction * toFree);
+
+    void removeNulls(int ID, int cpuPower, int up, int bottom, int left, int right);
 };
 
 

@@ -32,7 +32,7 @@
 
 #define PIXEL_COMPRSSION_RATE 3
 
-#define EMPTY_FRAMES_TO_STOP 8
+#define EMPTY_FRAMES_TO_STOP 5
 
 #define FPS 30
 

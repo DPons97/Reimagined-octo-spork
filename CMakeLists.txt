@@ -37,7 +37,7 @@ target_link_libraries( OctoSporkServer ${OpenCV_LIBS} )
 
 # Include Darknet libraries for server
 # Path to Darknet project folder.
-set(DARKNET_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Server/darknet/")
+set(DARKNET_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Server/darknet")
 set(PROJ_NAME OctoSporkServer)
 
 # Give a custom name to shared library which is provided by Darknet when
