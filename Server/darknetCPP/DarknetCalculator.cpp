@@ -78,6 +78,8 @@ detection * DarknetCalculator::detect(cv::Mat input, int * num_boxes) {
     image sized = cpp_letterbox_image(im, net->w, net->h);
     layer l = net->layers[net->n-1];
 
+    networkMutex.lock();
+
     // Get actual data associated with test image.
     float *frame_data = sized.data;
     // Do prediction.
@@ -90,5 +92,8 @@ detection * DarknetCalculator::detect(cv::Mat input, int * num_boxes) {
 
     cpp_free_image(im);
     cpp_free_image(sized);
+
+    networkMutex.unlock();
+
     return lastDetection;
 }

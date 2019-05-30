@@ -260,8 +260,9 @@ bool Instruction::getAnswerImg(int bkgSocket, cv::Mat& outMat) {
             log->writeLog("ERROR reading from socket");
             return false;
         }
-        log->writeLog(string("Received ").append(to_string(i)).append("/").append(to_string(imgSize)));
+        //log->writeLog(string("Received ").append(to_string(i)).append("/").append(to_string(imgSize)));
     }
+    log->writeLog("Image arrived");
 
     inMat.data = buffer;
 
