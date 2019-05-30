@@ -94,12 +94,20 @@ void Tracker::tracking(string toTrack, int trackPid) {
     if (coordinates.empty()) return;
     coordinate lastCoord = coordinates[coordinates.size() - 1];
 
-    // Alien zone definition (tracked object has dematerialized)
-    double leftMargin = xImgSize * (BORDER_ZONE / 100.0);
-    double rightMargin = xImgSize * (1 - BORDER_ZONE/100.0);
-    double bottomMargin = yImgSize * (BORDER_ZONE / 100.0);
-    double topMargin = yImgSize * (1 - BORDER_ZONE/100.0);
+    // Relative to absolute coordinates
+    for (coordinate coord : coordinates) relToAbsCoords(coord);
 
+    // Save coordinates to file and assign file name
+    saveCoords(toTrack, coordinates);
+
+    thread * newThread = new thread(&Tracker::keepTracking, this, std::ref(lastCoord));
+    newThread->detach();
+
+    instructions[trackPid] = -1;
+    close(trackSocket);
+}
+
+void Tracker::keepTracking(const coordinate &lastCoord) {
     vector<string> trackingArgs;
     trackingArgs.insert(trackingArgs.begin(), trackingName);
     trackingArgs.insert(trackingArgs.end(), to_string(trackingID));
@@ -108,11 +116,11 @@ void Tracker::tracking(string toTrack, int trackPid) {
     trackingArgs.insert(trackingArgs.end(), to_string(xImgSize));
     trackingArgs.insert(trackingArgs.end(), to_string(yImgSize));
 
-    // Relative to absolute coordinates
-    for (coordinate coord : coordinates) relToAbsCoords(coord);
-
-    // Save coordinates to file and assign file name
-    saveCoords(toTrack, coordinates);
+    // Alien zone definition (tracked object has dematerialized)
+    double leftMargin = xImgSize * (BORDER_ZONE / 100.0);
+    double rightMargin = xImgSize * (1 - BORDER_ZONE/100.0);
+    double bottomMargin = yImgSize * (BORDER_ZONE / 100.0);
+    double topMargin = yImgSize * (1 - BORDER_ZONE/100.0);
 
     auto thisNode = planimetry->getNodeBySocket(nodeSocket);
     if (lastCoord.x <= leftMargin) {
@@ -120,6 +128,7 @@ void Tracker::tracking(string toTrack, int trackPid) {
         // Start tracking to left side
         if (thisNode->left != nullptr && thisNode->left->thisNode != nullptr) {
             log->writeLog("[" + toString() + "] Keep tracking to the left of this node");
+
             dynamic_cast<SNode *>(thisNode->left->thisNode)->track(fileName, trackingArgs);
         }
     } else if (lastCoord.x >= rightMargin) {
@@ -128,6 +137,7 @@ void Tracker::tracking(string toTrack, int trackPid) {
         // Start tracking to right side
         if (thisNode->right != nullptr && thisNode->right->thisNode != nullptr) {
             log->writeLog("[" + toString() + "] Keep tracking to the right of this node");
+
             dynamic_cast<SNode *>(thisNode->right->thisNode)->track(fileName, trackingArgs);
         }
     } else if (lastCoord.y >= topMargin) {
@@ -136,6 +146,7 @@ void Tracker::tracking(string toTrack, int trackPid) {
         // Start tacking to top side
         if (thisNode->up != nullptr && thisNode->up->thisNode != nullptr) {
             log->writeLog("[" + toString() + "] Keep tracking to the up of this node");
+
             dynamic_cast<SNode *>(thisNode->up->thisNode)->track(fileName, trackingArgs);
         }
     } else if (lastCoord.y <= bottomMargin) {
@@ -144,13 +155,12 @@ void Tracker::tracking(string toTrack, int trackPid) {
         // Start tracking to bottom side
         if (thisNode->bottom != nullptr && thisNode->bottom->thisNode != nullptr) {
             log->writeLog("[" + toString() + "] Keep tracking to the bottom of this node");
+
             dynamic_cast<SNode *>(thisNode->bottom->thisNode)->track(fileName, trackingArgs);
         }
     }
-
-    instructions[trackPid] = -1;
-    close(trackSocket);
 }
+
 
 /**
  * Wait for a new coordinate result to arrive from client

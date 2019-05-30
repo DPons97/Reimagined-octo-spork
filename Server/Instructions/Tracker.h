@@ -45,6 +45,7 @@ private:
 
     void saveCoords(string toTrack, std::vector<coordinate> coords);
 
+    void keepTracking(const coordinate &lastCoord);
 };
 
 

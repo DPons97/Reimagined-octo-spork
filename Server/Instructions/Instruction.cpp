@@ -270,6 +270,10 @@ bool Instruction::getAnswerImg(int bkgSocket, cv::Mat& outMat) {
     return true;
 }
 
+/**
+ * Disconnect and stop instruction
+ * @param instrPid instruction's PID to stop and disconnect
+ */
 void Instruction::disconnect(int instrPid) {
     // Send pid to close. -1 if all connections have to be closed
     std::vector<std::string> toClose;

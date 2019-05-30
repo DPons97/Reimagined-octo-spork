@@ -159,33 +159,38 @@ int main(int argc, char** argv) {
     return 0;
 }
 
+long int getTimeMs(){
+    return std::chrono::duration_cast< std::chrono::milliseconds >(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
 string nextImg(){
-    double ellapsedTime = ((double) (clock() - lastTime)/CLOCKS_PER_SEC );
-    //mylog->writeLog(string("ellapsed time: ").append(to_string(ellapsedTime)));
-    double toSleep = (1-ellapsedTime);
+    double elapsedTime = ((double) (getTimeMs() - lastTime)/1000);
+    mylog->writeLog(string("elapsed time: ").append(to_string(elapsedTime)));
+    double toSleep = (1-elapsedTime);
     //mylog->writeLog(string("toSleep: ").append(to_string(toSleep)));
     if (toSleep > 0 ) {
         usleep(toSleep * 1000000);
-        ellapsedTime = ((double) (clock() - lastTime)/CLOCKS_PER_SEC ) + toSleep;
-        //mylog->writeLog(string("ellapsed time: ").append(to_string(ellapsedTime)));
+        elapsedTime = ((double) (getTimeMs() - lastTime)/1000 );
+        //mylog->writeLog(string("ellapsed time: ").append(to_string(elapsedTime)));
     }
-    if(lastTime != 0) currFrame = currFrame + ellapsedTime * FPS;
-    lastTime = clock();
+    if (lastTime != 0) currFrame = currFrame + elapsedTime * FPS;
+    lastTime = getTimeMs();
     string to_ret = string(FRAME_NAME).append(to_string(currFrame)).append(".jpg");
     mylog->writeLog(to_ret);
     return to_ret;
 }
 
+
 void initCurrFrame(){
     FILE *f = fopen(FRAME_FILE, "r");
     long int lastFrame;
     long int last_ms;
-    
+
     fscanf(f, "%ld %ld", &lastFrame, &last_ms);
 
     if (last_ms > 0) {
-        long int now_ms = std::chrono::duration_cast< std::chrono::milliseconds >(
-                std::chrono::system_clock::now().time_since_epoch()).count();
+        long int now_ms = getTimeMs();
         currFrame = lastFrame + ((double) (now_ms -last_ms)/1000)*FPS;
     } else currFrame = lastFrame;
 
@@ -194,8 +199,7 @@ void initCurrFrame(){
 
 void saveCurrFrame(){
     FILE *f = fopen(FRAME_FILE, "w");
-    long int now_ms = std::chrono::duration_cast< std::chrono::milliseconds >(
-            std::chrono::system_clock::now().time_since_epoch()).count();
+    long int now_ms = getTimeMs();
     fprintf(f, "%ld %ld", currFrame, now_ms);
     mylog->writeLog(string("Saving current frame number ").append(to_string(currFrame)));
     fclose(f);
