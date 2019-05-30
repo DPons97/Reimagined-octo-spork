@@ -35,6 +35,8 @@ public:
 
     void addNode(int ID, int cpuPower, int x, int z, int theta, Instruction *toAdd, int up, int bottom, int left, int right);
 
+    void removeNode(int socket);
+
     Node * getNode(Instruction * toFind);
 
     Node *getNode(int toFind);
@@ -48,7 +50,7 @@ protected:
 
 private:
 
-    void freeNode(Instruction * toFree);
+    void freeNode(Node * toFree);
 
     void removeNulls(int ID, int cpuPower, int up, int bottom, int left, int right);
 };

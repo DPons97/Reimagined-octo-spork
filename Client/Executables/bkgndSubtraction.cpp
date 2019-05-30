@@ -25,7 +25,7 @@
 //#define FRAME_NAME "/home/dpons/Documents/Programming/OctoSpork/Executables/resources/frames/frame"
 #define FRAME_NAME "../Client/Executables/resources/cam1/frame"
 #define FRAME_FILE "../Client/Executables/resources/curr_frame.txt"
-#define  FPS 30
+#define FPS 30
 
 using namespace  cv;
 using namespace std;

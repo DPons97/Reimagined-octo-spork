@@ -68,6 +68,14 @@ void Planimetry::addNode(int ID, int cpuPower, int x, int z, int theta, Instruct
 }
 
 /**
+ * Free given node
+ * @param socket of node to remove
+ */
+void Planimetry::removeNode(int socket) {
+    freeNode(getNodeBySocket(socket));
+}
+
+/**
  * Remove all null nodes
  * @param ID
  * @param cpuPower
@@ -94,7 +102,6 @@ Node *Planimetry::getNode(int toFind) {
     return nullptr;
 }
 
-
 /**
  * @param toFind
  * @return node from defined SNode ref
@@ -119,10 +126,8 @@ Node *Planimetry::getNodeBySocket(int toFind) {
 /**
  * @param toFree node to free
  */
-void Planimetry::freeNode(Instruction *toFree) {
-    Node * nodeToFree = getNode(toFree);
-
-    if (toFree != nullptr) free(toFree);
+void Planimetry::freeNode(Node *toFree) {
+    if (toFree != nullptr) toFree->thisNode = nullptr;
 }
 
 /**

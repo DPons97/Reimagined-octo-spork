@@ -52,3 +52,7 @@ void SNode::track(const string& fileName, std::vector<std::string> args) {
     auto trackingInstr = new Tracker(args[0] + "-Tracker", instructions, planimetry, fileName);
     trackingInstr->start(nodeSocket, nodePort, args);
 }
+
+SNode::~SNode() {
+    planimetry->removeNode(nodeSocket);
+}

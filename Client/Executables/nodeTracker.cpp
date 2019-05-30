@@ -66,9 +66,9 @@ float confThreshold = 0.5; // Confidence threshold
 
 float nmsThreshold = 0.4;  // Non-maximum suppression threshold
 
-int inpWidth = 128;  // Width of network's input image
+int inpWidth = 256;  // Width of network's input image
 
-int inpHeight = 128; // Height of network's input image
+int inpHeight = 256; // Height of network's input image
 
 int track_class;
 
@@ -117,8 +117,8 @@ int main(int argc, char** argv) {
     while(getline(ifs, line)) classes.push_back(line);
 
     // Give the configuration and weight files for the model
-    String modelConfiguration = "../Server/darknet/cfg/yolov3.cfg";
-    String modelWeights = "../Server/darknet/yolov3.weights";
+    String modelConfiguration = "../Server/darknet/cfg/yolov3-tiny.cfg";
+    String modelWeights = "../Server/darknet/yolov3-tiny.weights";
 
     // Load the network
     Net net = readNetFromDarknet(modelConfiguration, modelWeights);

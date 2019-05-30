@@ -26,6 +26,8 @@ public:
 
     void track(const string& fileName, std::vector<std::string> args);
 
+    virtual ~SNode();
+
 protected:
 
 
