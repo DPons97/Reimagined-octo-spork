@@ -27,7 +27,7 @@ After cloning this repository (```git clone https://github.com/DPons97/reimagine
   cd [...]/reimagined-octo-spork/
   mkdir build
   cmake ..
-  make [leave empty if you want to build everything. Otherwise, see above]  
+  make [leave empty if you want to build everything. Otherwise, see below]  
   ```
   If you want to only build Server, change ```make``` line to:
   ```shell
