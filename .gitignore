@@ -37,7 +37,6 @@ cmake-build-debug/
 
 # Logs and Darknet files
 Logs/
-Server/darknet/*.jpg
 Server/darknet/*.weights
 
 
