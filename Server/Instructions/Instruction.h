@@ -21,6 +21,7 @@
 #include <mutex>
 #include <dirent.h>
 #include <sys/stat.h>
+#include <opencv2/core/mat.hpp>
 
 class Instruction {
 
@@ -30,6 +31,10 @@ public:
     int nodeSocket;
 
     int nodePort;
+
+    int xImgSize;
+
+    int yImgSize;
 
     Logger * log;
 
@@ -62,6 +67,8 @@ protected:
     bool getAnswerCode(string& outCode, int instrSocket);
 
     int startInstruction(int instrCode, std::vector<string> args = std::vector<string>());
+
+    bool getAnswerImg(int bkgSocket, cv::Mat& outMat);
 
     void disconnect(int instrPid = 0);
 

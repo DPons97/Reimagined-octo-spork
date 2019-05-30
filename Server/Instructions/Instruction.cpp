@@ -16,6 +16,8 @@ Instruction::Instruction(const string &name, const map<int, int> &instructions, 
                                                                                   sharedMemory(sharedMemory) {
     nodeSocket = 0;
     nodePort = 0;
+    xImgSize = 0;
+    yImgSize = 0;
     log = new Logger(name, true);
 }
 
@@ -189,6 +191,82 @@ int Instruction::startInstruction(int instrCode, std::vector<string> args) {
         instrLock.unlock();
         return clientPid;
     }
+}
+
+/**
+ * Wait for an image to arrive from client.
+ * @param bkgSocket
+ * @param outMat Mat that contains the answer image
+ * @return True if answer received successfully
+ */
+bool Instruction::getAnswerImg(int bkgSocket, cv::Mat& outMat) {
+    int n;
+    std::vector<unsigned char> vectBuff;
+    char cmdBuff[10];
+
+    log->writeLog("Waiting for image send message to arrive");
+    // Wait for send message
+    do {
+        bzero(cmdBuff, sizeof(cmdBuff));
+        n = (int) read(bkgSocket, cmdBuff, 7);
+        if (n <= 0) {
+            log->writeLog("ERROR reading command message or node disconnected");
+            return false;
+        }
+
+        if (strcmp(cmdBuff, "imgstop") == 0) {
+            log->writeLog("Video stream ended from client. Disconnecting...");
+            return false;
+        }
+
+        log->writeLog(cmdBuff);
+    } while (strcmp(cmdBuff, "imgsend") != 0);
+    write(bkgSocket, "ready", 5);
+
+    // Receive Mat cols and rows
+    log->writeLog("Reading columns");
+    bzero(cmdBuff, sizeof(cmdBuff));
+    n = (int) read(bkgSocket, cmdBuff, 5);
+    if (n < 0) {
+        log->writeLog("ERROR reading image columns");
+        return false;
+    }
+    int cols = atoi(cmdBuff);
+    xImgSize = cols;
+    write(bkgSocket, "ready", 5);
+
+    log->writeLog("Reading rows");
+    bzero(cmdBuff, sizeof(cmdBuff));
+    n = (int) read(bkgSocket, cmdBuff, 5);
+    if (n < 0) {
+        log->writeLog("ERROR reading image rows");
+        return false;
+    }
+    int rows = atoi(cmdBuff);
+    yImgSize = rows;
+    write(bkgSocket, "ready", 5);
+
+    cv::Mat inMat = cv::Mat::zeros(rows, cols, CV_8UC3);
+
+    int imgSize = (int) (inMat.total() * inMat.elemSize());
+    uchar buffer[imgSize];
+
+    log->writeLog("Reading image");
+    n = 0;
+    bzero(buffer, imgSize);
+    for (int i = 0; i < imgSize; i += n) {
+        n = (int) recv(bkgSocket, buffer + i, imgSize - i, 0);
+        if (n < 0) {
+            log->writeLog("ERROR reading from socket");
+            return false;
+        }
+        log->writeLog(string("Received ").append(to_string(i)).append("/").append(to_string(imgSize)));
+    }
+
+    inMat.data = buffer;
+
+    outMat = inMat;
+    return true;
 }
 
 void Instruction::disconnect(int instrPid) {

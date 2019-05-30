@@ -27,13 +27,7 @@ public:
 private:
     Planimetry * planimetry;
 
-    int xImgSize;
-
-    int yImgSize;
-
     void backgroundSubtraction(vector<int> toTrack);
-
-    bool getAnswerImg(int bkgSocket, cv::Mat& outMat);
 
 };
 
