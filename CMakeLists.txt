@@ -20,7 +20,7 @@ add_executable(OctoSporkClient Client/main.cpp ${CLIENT_SOURCES} Client/CNode.cp
 # Include OpenCV for client
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
-find_package( OpenCV 3.4.5 REQUIRED )
+find_package( OpenCV REQUIRED )
 
 # Server executable
 file(GLOB SERVER_SOURCES
