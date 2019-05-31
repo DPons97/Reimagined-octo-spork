@@ -1,5 +1,9 @@
 #include <utility>
 
+#include <utility>
+
+#include <utility>
+
 //
 // Created by dpons on 5/19/19.
 //
@@ -11,9 +15,9 @@ std::mutex Instruction::instrLock;
  * Default constructor
  * @param name -> This instruction's identifier
  */
-Instruction::Instruction(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory) : name(name),
+Instruction::Instruction(const string &name, std::map<int, int> &instructions, vector<void*> sharedMemory) : name(name),
                                                                                   instructions(instructions),
-                                                                                  sharedMemory(sharedMemory) {
+                                                                                  sharedMemory(std::move(sharedMemory)) {
     nodeSocket = 0;
     nodePort = 0;
     xImgSize = 0;
@@ -21,11 +25,12 @@ Instruction::Instruction(const string &name, const map<int, int> &instructions, 
     log = new Logger(name, true);
 }
 
-Instruction::Instruction(const string &name, const map<int, int> &instructions, void *sharedMemory) : name(name),
+Instruction::Instruction(const string &name, std::map<int, int> &instructions, void *sharedMemory) : name(name),
                                                                                   instructions(instructions) {
     std::vector<void *> memoryVector;
     memoryVector.insert(memoryVector.begin(), sharedMemory);
-
+    xImgSize = 0;
+    yImgSize = 0;
     nodeSocket = 0;
     nodePort = 0;
     log = new Logger(name, true);
@@ -63,6 +68,7 @@ void Instruction::start(int socket, int port) {
 bool Instruction::sendMessage(int instrCode, const std::vector<string> &args) {
     int n;
     std::string message;
+    char buffer[10];
 
     message.assign(std::to_string(instrCode));
     if (!args.empty()) {
@@ -76,13 +82,22 @@ bool Instruction::sendMessage(int instrCode, const std::vector<string> &args) {
 
     log->writeLog(string("Sending ").append(message.data()));
 
+    n = (int) write(nodeSocket, "cmdStart", strlen("cmdStart"));
+
+    n = (int) read(nodeSocket, buffer, 5);
+    if (strcmp(buffer, "ready") != 0) return false;
+
     n = (int) write(nodeSocket, message.data(), strlen(message.data()));
     if (n < 0) {
         log->writeLog(std::string("[").append(toString()).append("] ERROR writing to socket"));
         return false;
     }
 
-    return true;
+    bzero(buffer, sizeof(buffer));
+    n = (int) read(nodeSocket, buffer, 8);
+
+    return strcmp(buffer, "received") == 0;
+
 }
 
 /**
@@ -186,7 +201,9 @@ int Instruction::startInstruction(int instrCode, std::vector<string> args) {
         getAnswerCode(answer, newSock);
         int clientPid = atoi(answer.data());
 
-        instructions.insert(it, pair<int, int>(clientPid, newSock));
+        if (it != instructions.end()) instructions.erase(it);
+        instructions.insert(instructions.end(), pair<int, int>(clientPid, newSock));
+
         log->writeLog(std::string("[").append(toString()).append("] Connection accepted. Starting job..."));
         instrLock.unlock();
         return clientPid;
@@ -305,6 +322,14 @@ string Instruction::toString() {
 }
 
 /**
+ * @return current time in milliseconds
+ */
+long int Instruction::getTimeMs(){
+    return std::chrono::duration_cast< std::chrono::milliseconds >(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+}
+
+/**
  * @return this node's socket
  */
 int Instruction::getNodeSocket() const {
@@ -316,8 +341,5 @@ int Instruction::getNodeSocket() const {
  * Send disconnecting message to node and close socket. Then delete log.
  */
 Instruction::~Instruction() {
-    log->writeLog(std::string("[").append(toString()).append("] Disconnecting..."));
-    disconnect();
-    close(nodeSocket);
     delete log;
 }

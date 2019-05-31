@@ -18,9 +18,9 @@
 class bkgSubtraction : public Instruction {
 
 public:
-    bkgSubtraction(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory);
+    bkgSubtraction(const string &name, std::map<int, int> &instructions, vector<void*> sharedMemory);
 
-    bkgSubtraction(const string &name, const map<int, int> &instructions, void* sharedMemory);
+    bkgSubtraction(const string &name, std::map<int, int> &instructions, void* sharedMemory);
 
     void start(int nodeSocket, int nodePort) override;
 

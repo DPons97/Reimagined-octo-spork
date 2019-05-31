@@ -12,7 +12,7 @@
 #define DEGTORAD PI/180
 #define BORDER_ZONE 20      // Tweak this to increase tracking accuracy
 
-Tracker::Tracker(const string &name, const map<int, int> &instructions, void *sharedMemory) : Instruction(
+Tracker::Tracker(const string &name, std::map<int, int> &instructions, void *sharedMemory) : Instruction(
         name, instructions, sharedMemory) {
     xImgSize = 0;
     yImgSize = 0;
@@ -21,7 +21,7 @@ Tracker::Tracker(const string &name, const map<int, int> &instructions, void *sh
     fileName = "";
 }
 
-Tracker::Tracker(const string &name, const map<int, int> &instructions, void * sharedMemory, string fileToWrite) :
+Tracker::Tracker(const string &name, std::map<int, int> &instructions, void * sharedMemory, string fileToWrite) :
         Instruction(name, instructions, sharedMemory){
     xImgSize = 0;
     yImgSize = 0;
@@ -91,7 +91,13 @@ void Tracker::tracking(string toTrack, int trackPid) {
     }
 
     // Get last coordinate
-    if (coordinates.empty()) return;
+    if (coordinates.empty()) {
+        if (instructions[trackPid] != -1) {
+            close(instructions[trackPid]);
+            instructions[trackPid] = -1;
+        }
+        return;
+    }
     coordinate lastCoord = coordinates[coordinates.size() - 1];
 
     // Relative to absolute coordinates
@@ -103,8 +109,11 @@ void Tracker::tracking(string toTrack, int trackPid) {
     thread * newThread = new thread(&Tracker::keepTracking, this, std::ref(lastCoord));
     newThread->detach();
 
-    instructions[trackPid] = -1;
-    close(trackSocket);
+    log->writeLog(std::string("[").append(toString()).append("] Disconnecting tracker instruction..."));
+    if (instructions[trackPid] != -1) {
+        close(instructions[trackPid]);
+        instructions[trackPid] = -1;
+    }
 }
 
 void Tracker::keepTracking(const coordinate &lastCoord) {

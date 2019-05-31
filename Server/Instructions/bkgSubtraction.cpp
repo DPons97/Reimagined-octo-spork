@@ -5,12 +5,12 @@
 #include "bkgSubtraction.h"
 #include "Tracker.h"
 
-bkgSubtraction::bkgSubtraction(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory):Instruction(
+bkgSubtraction::bkgSubtraction(const string &name, std::map<int, int> &instructions, vector<void*> sharedMemory):Instruction(
         name, instructions, sharedMemory) {
     planimetry = static_cast<Planimetry *>(sharedMemory[0]);
 }
 
-bkgSubtraction::bkgSubtraction(const string &name, const map<int, int> &instructions, void *sharedMemory) : Instruction(
+bkgSubtraction::bkgSubtraction(const string &name, std::map<int, int> &instructions, void *sharedMemory) : Instruction(
         name, instructions, sharedMemory) {
     planimetry = static_cast<Planimetry * >(sharedMemory);
 
@@ -98,14 +98,17 @@ void bkgSubtraction::backgroundSubtraction(vector<int> toTrack) {
             }
 
             cpp_free_detections(result, num_boxes);
+        }
 
-        } else {
+        if (instructions[bkgPid] != -1) {
+            close(instructions[bkgPid]);
             instructions[bkgPid] = -1;
-            close(bkgSocket);
         }
     }
 
     // Stopped video stream or error occurred. Disconnecting last socket
-    instructions[bkgPid] = -1;
-    close(bkgSocket);
+    if (instructions[bkgPid] != -1) {
+        close(instructions[bkgPid]);
+        instructions[bkgPid] = -1;
+    }
 }

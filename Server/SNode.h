@@ -18,9 +18,9 @@ class SNode : public Instruction {
 
 public:
 
-    SNode(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory);
+    SNode(const string &name, std::map<int, int> &instructions, vector<void*> sharedMemory);
 
-    SNode(const string &name, const map<int, int> &instructions, void * sharedMemory);
+    SNode(const string &name, std::map<int, int> &instructions, void * sharedMemory);
 
     void start(int nodeSocket, int nodePort) override;
 
@@ -35,7 +35,10 @@ private:
     // This server node's planimetry
     Planimetry * planimetry;
 
+    long int deltaBeforeDisconnect;
+
     // Methods
+    void startBkgSubtraction() const;
 };
 
 

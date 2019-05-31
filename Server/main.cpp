@@ -140,7 +140,8 @@ void waitForConnection(int socket, int sockPort) {
  * @param port of new connection
  */
 void startNode(int newSock, int port) {
-    SNode newNode = SNode(string("SNode"), map<int, int>(), &planimetry);
+    map<int, int> instructions;
+    SNode newNode = SNode(string("SNode"), instructions, &planimetry);
 
     // Receive node's metadata
     int n = 0;

@@ -18,9 +18,9 @@ typedef struct {
 
 class Tracker : public Instruction {
 public:
-    Tracker(const string &name, const map<int, int> &instructions, void * sharedMemory);
+    Tracker(const string &name, std::map<int, int> &instructions, void * sharedMemory);
 
-    Tracker(const string &name, const map<int, int> &instructions, void * sharedMemory, string fileToWrite);
+    Tracker(const string &name, std::map<int, int> &instructions, void * sharedMemory, string fileToWrite);
 
     void start(int nodeSocket, int nodePort, std::vector<std::string> args) override;
 

@@ -16,13 +16,15 @@
 #include "Instructions/bkgSubtraction.h"
 #include "Instructions/Tracker.h"
 
-SNode::SNode(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory):Instruction(
+SNode::SNode(const string &name, std::map<int, int> &instructions, vector<void*> sharedMemory):Instruction(
         name, instructions, sharedMemory) {
+    deltaBeforeDisconnect = 5000;
     planimetry = static_cast<Planimetry *>(sharedMemory[0]);
 }
 
-SNode::SNode(const string &name, const map<int, int> &instructions, void *sharedMemory) : Instruction(
+SNode::SNode(const string &name, std::map<int, int> &instructions, void *sharedMemory) : Instruction(
         name, instructions, sharedMemory) {
+    deltaBeforeDisconnect = 5000;
     planimetry = static_cast<Planimetry * >(sharedMemory);
 
 }
@@ -39,8 +41,26 @@ void SNode::start(int socket, int port) {
     log->writeLog(string("[").append(toString()).append("] New node created"));
 
     // START ALL OPERATIONS
-    auto bkgSubInstr = new bkgSubtraction("bkgSubtraction", instructions, planimetry);
-    bkgSubInstr->start(socket, port);
+    startBkgSubtraction();
+
+    // First instruction finished. Wait to close node until no instructions left for 5s
+    auto lastTime = getTimeMs();
+    while (getTimeMs() - lastTime < deltaBeforeDisconnect) {
+        usleep(500000);
+
+        bool keepOpen = false;
+
+        if (instructions.empty()) continue;
+
+        // Check there are instructions left to do
+        auto it = instructions.begin();
+        while (it != instructions.end()) {
+            if (it->second != -1) keepOpen = true;
+            it++;
+        }
+
+        if (keepOpen) lastTime = getTimeMs();
+    }
 }
 
 /**
@@ -49,10 +69,28 @@ void SNode::start(int socket, int port) {
  * @param args tracking arguments
  */
 void SNode::track(const string& fileName, std::vector<std::string> args) {
+    // Disconnect all client's instructions before keeping track
+    auto it = instructions.begin();
+    while (it != instructions.end()) {
+        if (it->second != -1) disconnect(it->first);
+        it++;
+    }
+
     auto trackingInstr = new Tracker(args[0] + "-Tracker", instructions, planimetry, fileName);
     trackingInstr->start(nodeSocket, nodePort, args);
+
+    thread * newThread = new thread(&SNode::startBkgSubtraction, this);
+    newThread->detach();
+}
+
+void SNode::startBkgSubtraction() const {
+    auto bkgSubInstr = new bkgSubtraction("bkgSubtraction", instructions, planimetry);
+    bkgSubInstr->start(nodeSocket, nodePort);
 }
 
 SNode::~SNode() {
+    log->writeLog(std::string("[").append(toString()).append("] Disconnecting..."));
+    disconnect();
+    close(nodeSocket);
     planimetry->removeNode(nodeSocket);
 }

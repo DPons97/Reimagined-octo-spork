@@ -39,20 +39,22 @@ public:
     Logger * log;
 
     // Map of current open instructions: int PID, int SOCKET
-    std::map<int, int> instructions;
+    std::map<int, int> & instructions;
 
     // Vector of memory that is shared with this node
     vector<void*> sharedMemory;
 
-    Instruction(const string &name, const map<int, int> &instructions, vector<void*> sharedMemory);
+    Instruction(const string &name, std::map<int, int> &instructions, vector<void*> sharedMemory);
 
-    Instruction(const string &name, const map<int, int> &instructions, void * sharedMemory);
+    Instruction(const string &name, std::map<int, int> &instructions, void * sharedMemory);
 
     virtual void start(int socket, int port, std::vector<std::string> args);
 
     virtual void start(int socket, int port);
 
     virtual string toString();
+
+    long int getTimeMs();
 
     virtual ~Instruction();
 

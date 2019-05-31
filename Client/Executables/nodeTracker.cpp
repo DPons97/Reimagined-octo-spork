@@ -21,6 +21,7 @@
 #include <vector>
 #include "../../Logger.h"
 #include <signal.h>
+#include <thread>
 
 #define FRAME_NAME "../Client/Executables/resources/cam1/frame"
 
@@ -86,8 +87,13 @@ void postprocess(Mat& frame, const vector<Mat>& out);
 // Get the names of the output layers
 vector<String> getOutputsNames(const Net& net);
 
-// Draw the predicted bounding box
+// Estimate Z
 int calcZ(int width, int height);
+
+// Draw predictions
+void drawPred(int classId, float conf, int left, int top, int right, int bottom, Mat& frame);
+
+void openFrame(const string &kWinName, const Mat &frame);
 
 void handler (int signal_number) {
     saveCurrFrame();
@@ -114,6 +120,10 @@ int main(int argc, char** argv) {
     string classesFile = "../Server/darknet/data/coco.names";
     ifstream ifs(classesFile.c_str());
     string line;
+
+    static const string kWinName = "Tracking results";
+    namedWindow(kWinName, WINDOW_NORMAL);
+
     while(getline(ifs, line)) classes.push_back(line);
 
     // Give the configuration and weight files for the model
@@ -151,12 +161,28 @@ int main(int argc, char** argv) {
 
         // Remove the bounding boxes with low confidence
         postprocess(frame, outs);
+        thread * newThread = new thread(&openFrame, kWinName, frame);
+        newThread->detach();
+
         if (empty_frames >= EMPTY_FRAMES_TO_STOP ) break;
 
     }
     sendTrackPoints();
 
     return 0;
+}
+
+/**
+ * Open given frame in new window
+ * @param kWinName
+ * @param frame
+ */
+void openFrame(const string &kWinName, const Mat &frame) {
+    putText(frame, "", Point(0, 15), FONT_HERSHEY_SIMPLEX, 0.5, Scalar(0, 0, 255));
+
+    // Write the frame with the detection boxes
+    imshow(kWinName, frame);
+    waitKey(1000);
 }
 
 long int getTimeMs(){
@@ -206,8 +232,7 @@ void saveCurrFrame(){
 }
 
 // Remove the bounding boxes with low confidence using non-maxima suppression
-void postprocess(Mat& frame, const vector<Mat>& outs)
-{
+void postprocess(Mat& frame, const vector<Mat>& outs) {
     bool found = false;
     vector<int> classIds;
     vector<float> confidences;
@@ -238,13 +263,30 @@ void postprocess(Mat& frame, const vector<Mat>& outs)
                     int centerY = (int)(data[1] * frame.rows);
                     int width = (int)(data[2] * frame.cols);
                     int height = (int)(data[3] * frame.rows);
+                    int left = centerX - width / 2;
+                    int top = centerY - height / 2;
                     int z = calcZ(width, height);
                     mylog->writeLog(string("Object found at ").append(to_string(centerX)).append("x").
                             append(to_string(centerY)).append(" with confidence of: ").
                             append(to_string(confidence*100)).append("%"));
+
+                    classIds.push_back(classIdPoint.x);
+                    confidences.push_back((float)confidence);
+                    boxes.emplace_back(left, top, width, height);
+
                     track_points->push_back((track_point){ .x = centerX, .y = centerY, .z = z, .confidence = confidence});
                 }
             }
+        }
+
+        // Perform non maximum suppression to eliminate redundant overlapping boxes with
+        // lower confidences
+        vector<int> indices;
+        NMSBoxes(boxes, confidences, confThreshold, nmsThreshold, indices);
+        for (int idx : indices) {
+            Rect box = boxes[idx];
+            drawPred(classIds[idx], confidences[idx], box.x, box.y,
+                     box.x + box.width, box.y + box.height, frame);
         }
     }
     if(!found)empty_frames ++;
@@ -292,4 +334,26 @@ void sendTrackPoints(){
     }
     write(sockfd, "0", 1);
     saveCurrFrame();
+}
+
+// Draw the predicted bounding box
+void drawPred(int classId, float conf, int left, int top, int right, int bottom, Mat& frame)
+{
+    //Draw a rectangle displaying the bounding box
+    rectangle(frame, Point(left, top), Point(right, bottom), Scalar(255, 178, 50), 3);
+
+    //Get the label for the class name and its confidence
+    string label = format("%.2f", conf);
+    if (!classes.empty())
+    {
+        CV_Assert(classId < (int)classes.size());
+        label = classes[classId] + ":" + label;
+    }
+
+    //Display the label at the top of the bounding box
+    int baseLine;
+    Size labelSize = getTextSize(label, FONT_HERSHEY_SIMPLEX, 0.5, 1, &baseLine);
+    top = max(top, labelSize.height);
+    rectangle(frame, Point(left, top - round(1.5*labelSize.height)), Point(left + round(1.5*labelSize.width), top + baseLine), Scalar(255, 255, 255), FILLED);
+    putText(frame, label, Point(left, top), FONT_HERSHEY_SIMPLEX, 0.75, Scalar(0,0,0),1);
 }

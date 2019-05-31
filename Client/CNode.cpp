@@ -85,11 +85,15 @@ void CNode::listen() {
 
     while(true){
         bzero(buffer, 256);
+        n_read = (int) read(sockfd, buffer, 8);
+        if (strcmp(buffer, "cmdStart") == 0) write(sockfd, "ready", 5);
+
+        bzero(buffer, 256);
         n_read = static_cast<int>(read(sockfd, buffer, 255));
         if (n_read < 0)
             error("ERROR reading from socket");
         log->writeLog(string("Received ").append(buffer));
-
+        write(sockfd, "received", 8);
         msg = string(buffer);
         sep_msg = split(msg, "-");
         cod = atoi(sep_msg[0].c_str());
