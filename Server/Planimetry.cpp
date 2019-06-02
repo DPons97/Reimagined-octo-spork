@@ -22,14 +22,13 @@ Planimetry::Planimetry() {
  * @param left
  * @param right
  */
-void Planimetry::addNode(int ID, int cpuPower, int x, int z, int theta, Instruction *toAdd, int up, int bottom, int left, int right) {
+void Planimetry::addNode(int ID, int x, int z, int theta, Instruction *toAdd, int up, int bottom, int left, int right) {
     for (Node * node : planimetry) {
         if (node->ID == ID && node->thisNode == nullptr) {
             node->thisNode = toAdd;
             node->x = x;
             node->z = z;
             node->theta = theta;
-            node->cpuPower = cpuPower;
 
             node->up = getNode(up);
             if (node->up != nullptr) node->up->bottom = node;
@@ -40,7 +39,7 @@ void Planimetry::addNode(int ID, int cpuPower, int x, int z, int theta, Instruct
             node->right = getNode(right);
             if (node->right != nullptr) node->right->left = node;
 
-            removeNulls(ID, cpuPower, up, bottom, left, right);
+            removeNulls(ID, up, bottom, left, right);
         }
     }
 
@@ -49,13 +48,12 @@ void Planimetry::addNode(int ID, int cpuPower, int x, int z, int theta, Instruct
 
     newNode->ID = ID;
     newNode->thisNode = toAdd;
-    newNode->cpuPower = cpuPower;
     newNode->x = x;
     newNode->z = z;
     newNode->theta = theta;
     planimetry.push_back(newNode);
 
-    removeNulls(ID, cpuPower, up, bottom, left, right);
+    removeNulls(ID, up, bottom, left, right);
 
     newNode->up = getNode(up);
     if (newNode->up != nullptr) newNode->up->bottom = newNode;
@@ -84,11 +82,11 @@ void Planimetry::removeNode(int socket) {
  * @param left
  * @param right
  */
-void Planimetry::removeNulls(int ID, int cpuPower, int up, int bottom, int left, int right) {// If no adjacent exists, create new nodes with null SNode
-    if (up != -1 && getNode(up) == nullptr) addNode(up, cpuPower, -1, -1, -1, nullptr, -1, ID, -1, -1);
-    if (bottom != -1 && getNode(bottom) == nullptr) addNode(bottom, cpuPower, -1, -1, -1, nullptr, ID, -1, -1, -1);
-    if (left != -1 && getNode(left) == nullptr) addNode(left, cpuPower, -1, -1, -1, nullptr, -1, -1, -1, ID);
-    if (right != -1 && getNode(right) == nullptr) addNode(right, cpuPower, -1, -1, -1, nullptr, -1, -1, ID, -1);
+void Planimetry::removeNulls(int ID, int up, int bottom, int left, int right) {// If no adjacent exists, create new nodes with null SNode
+    if (up != -1 && getNode(up) == nullptr) addNode(up, -1, -1, -1, nullptr, -1, ID, -1, -1);
+    if (bottom != -1 && getNode(bottom) == nullptr) addNode(bottom, -1, -1, -1, nullptr, ID, -1, -1, -1);
+    if (left != -1 && getNode(left) == nullptr) addNode(left, -1, -1, -1, nullptr, -1, -1, -1, ID);
+    if (right != -1 && getNode(right) == nullptr) addNode(right, -1, -1, -1, nullptr, -1, -1, ID, -1);
 }
 
 /**

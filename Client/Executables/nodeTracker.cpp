@@ -23,7 +23,7 @@
 #include <signal.h>
 #include <thread>
 
-#define FRAME_NAME "../Client/Executables/resources/cam1/frame"
+#define FRAME_NAME "../Client/Executables/resources/cam2/frame"
 
 // meters !!
 #define FOCAL_LENGTH 0.025

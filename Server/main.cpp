@@ -164,10 +164,10 @@ void startNode(int newSock, int port) {
         return;
     }
     // Format: {cpuPower,id,x,z,idUp,idBott,idLeft,idRight}
-    int cpuPow, x, z, theta, id, idUp, idBott, idLeft, idRight;
-    sscanf(cmdBuff, "{%d,%d,%d,%d,%d,%d,%d,%d,%d}", &cpuPow, &id, &x, &z, &theta, &idUp, &idBott, &idLeft, &idRight);
+    int x, z, theta, id, idUp, idBott, idLeft, idRight;
+    sscanf(cmdBuff, "{%d,%d,%d,%d,%d,%d,%d,%d}", &id, &x, &z, &theta, &idUp, &idBott, &idLeft, &idRight);
 
     // Add new node to planimetry
-    planimetry.addNode(id, cpuPow, x, z, theta, &newNode, idUp, idBott, idLeft, idRight);
+    planimetry.addNode(id, x, z, theta, &newNode, idUp, idBott, idLeft, idRight);
     newNode.start(newSock, port);
 }

@@ -33,7 +33,7 @@ public:
 
     Planimetry();
 
-    void addNode(int ID, int cpuPower, int x, int z, int theta, Instruction *toAdd, int up, int bottom, int left, int right);
+    void addNode(int ID, int x, int z, int theta, Instruction *toAdd, int up, int bottom, int left, int right);
 
     void removeNode(int socket);
 
@@ -52,7 +52,7 @@ private:
 
     void freeNode(Node * toFree);
 
-    void removeNulls(int ID, int cpuPower, int up, int bottom, int left, int right);
+    void removeNulls(int ID, int up, int bottom, int left, int right);
 };
 
 

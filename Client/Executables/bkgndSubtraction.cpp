@@ -23,7 +23,7 @@
 #include <chrono>
 
 //#define FRAME_NAME "/home/dpons/Documents/Programming/OctoSpork/Executables/resources/frames/frame"
-#define FRAME_NAME "../Client/Executables/resources/cam1/frame"
+#define FRAME_NAME "../Client/Executables/resources/cam2/frame"
 #define FRAME_FILE "../Client/Executables/resources/curr_frame.txt"
 #define FPS 30
 
