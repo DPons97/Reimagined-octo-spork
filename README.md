@@ -64,6 +64,8 @@ Every client connects to the server sending his planimetry informations (his nod
 The server communicates every node an "idle" operation that is, in our case, a *Background subtraction* process. <br><br>
 **NB**: If you are not into detection and tracking systems, there still is something for you. Just skip the next paragraphs and go to *Customizing ROS.* <br><br>
 
+![alt text](https://github.com/DPons97/reimagined-octo-spork/blob/master/Concept.jpg)
+
 **NB**: As a lot of people don't have multiple cameras at their disposal, we implemented the video stream as a series of images (https://trac.ffmpeg.org/wiki/Create%20a%20thumbnail%20image%20every%20X%20seconds%20of%20the%20video). <br>
 Just remember to change FPS and other parameters inside bkgSubtraction and nodeTracker.<br>
 
