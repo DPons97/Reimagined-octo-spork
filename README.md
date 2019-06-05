@@ -40,6 +40,29 @@ After cloning this repository (```git clone https://github.com/DPons97/reimagine
   
 * If you decided to build Client, you have to move and compile *bkgSubtraction* and *nodeTracker* inside ***Client/Executables***.
 
+Running ROS:
+---
+cd into the build directory in reimagined-octo-spork
+```bash
+cd path-to/reimagined-octo-spork/build
+```
+* Server side:
+  ```bash
+  ./OctoSporkServer
+  ```
+* Client side:
+  There are two ways to run the client executable:
+  * Passing all informations as arguments
+  ```bash
+  ./OctoSporkClient ipaddress port node_id x y theta top_neighbour bottom_n left_m right_n 
+  ```
+  * Passing a configuration file
+  ```bash
+  ./OctoSporkClient path_to_cfg_file
+  ```
+  The configuration file should be a one line file with the arguments you would pass as above.
+
+  
 Tested Hardware:
 ---
 * Odroid xu4
@@ -49,18 +72,19 @@ Tested Hardware:
 
 The idea:
 ---
-The initial goal was to try to develop a software that involved distributed heterogeneous systems.<br>
-As we needed to work on a realistic study case, we thought about diving into image recognition.<br>
+The initial goal was to develop a software that involved distributed heterogeneous systems and that would be flexible and reusable for different applications.<br>
+As we needed to work on a realistic case study, we thought about diving into image recognition.<br>
 First, we did some research to find the algorithms we had at disposal and to select which one was the most suitable for our hardware.<br>
 Pjreddie's darknet network is really good concerning detection and it's fast enough on the Jetson but, having to also use an Odroid XU4 (8 cores CPU, no GPU), YOLO's library would result in really high computational times.<br>
 Here's where OpenCV's Deep Neural Network module comes in handy: it features a 9x faster implementation of DNN using CPU with the same darknet's yolov3 configuration file.<br>
 Some tweaking to the cfg are required to achive an acceptable speed, although trading off some accuracy.<br>
 Now let's **talk about the fun stuff.**<br>
 
-How does it works?
+How does it work?
 ---
 The ROS system's architecture is based on one SERVER (in our case the Jetson-TX2) and one or more CLIENTS / NODES (Odroid XU4 or any linux pc).<br>
 Every client connects to the server sending his planimetry informations (his node's ID and his neighbours' IDs) and waits for new instructions to be executed.<br>
+Client nodes relay on a text file to match the instruction ID received from the server with an actual executable that it can run in a new process. In this way the client side is easy to customize (more on that later... ).
 The server communicates every node an "idle" operation that is, in our case, a *Background subtraction* process. <br><br>
 **NB**: If you are not into detection and tracking systems, there still is something for you. Just skip the next paragraphs and go to *Customizing ROS.* <br><br>
 
