@@ -54,15 +54,17 @@ cd path-to/reimagined-octo-spork/build
   There are two ways to run the client executable:
   * Passing all informations as arguments
   ```bash
-  ./OctoSporkClient ipaddress port node_id x y theta top_neighbour bottom_n left_m right_n 
+  ./OctoSporkClient [ipaddress] [port] [node_id] [node_x] [node_y] [theta] [top_neighbour] [bottom_n] [left_n] [right_n] 
   ```
   * Passing a configuration file
   ```bash
-  ./OctoSporkClient path_to_cfg_file
+  ./OctoSporkClient [path_to_cfg_file]
   ```
   The configuration file should be a one line file with the arguments you would pass as above.
-
   
+  **NB:** *node_x*, *node_y*, *theta* are respectively the coordinates and the phase displacement of the camera's node. 
+
+
 Tested Hardware:
 ---
 * Odroid xu4
