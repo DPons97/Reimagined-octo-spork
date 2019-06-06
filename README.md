@@ -136,8 +136,8 @@ The client could receive a message from the server asking to kill a given pid. I
 
 
 ### Server-side customization
-Unlike client, ROS Server has to be customized directly from the source code, as it's composed of only one generic class: **Instruction.cpp** (you can find source code inside *Server/Instructions*).
-Basically, an object of type *Instrucion* is provided with all basic functionalities to communicate with a ClientNode:<br>
+Unlike client, ROS Server has to be customized directly from the source code, as it's composed of only one generic class: **Instruction.cpp** (you can find source code inside *Server/Instructions*).<br>
+Basically, an object of type *Instruction* is provided with all basic functionalities to communicate with a ClientNode:<br>
 * Default initializer:
   ```cpp
   Instruction(const string &name, std::map<int, int> &instructions, vector<void*> sharedMemory);
