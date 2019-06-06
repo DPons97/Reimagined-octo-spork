@@ -74,8 +74,8 @@ Tested Hardware:
 
 The idea:
 ---
-The initial goal was to develop a software that involved distributed heterogeneous systems and that would be flexible and reusable for different applications.<br>
-As we needed to work on a realistic case study, we thought about diving into image recognition.<br>
+The initial goal was to develop a software that involved distributed heterogeneous systems that would be flexible and reusable for different applications.<br>
+As we needed to work on a realistic case study, we thought about diving into image recognition and building a distributed tracking system.<br>
 First, we did some research to find the algorithms we had at disposal and to select which one was the most suitable for our hardware.<br>
 Pjreddie's darknet network is really good concerning detection and it's fast enough on the Jetson but, having to also use an Odroid XU4 (8 cores CPU, no GPU), YOLO's library would result in really high computational times.<br>
 Here's where OpenCV's Deep Neural Network module comes in handy: it features a 9x faster implementation of DNN using CPU with the same darknet's yolov3 configuration file.<br>
@@ -105,6 +105,11 @@ If a client receives this instruction, it starts tracking the defined object tha
 For every frame that has the object in it, the node saves detected box's coordinates and tries to estimate distance from the camera (with bad results, for now :neutral_face:).<br>
 When the object is no more in sight of the client's camera, the server receives all saved coordinates and analyze them to decide whether it could keep tracking through other connected cameras.<br>
 This is possible thanks to the planimetry that is stored inside server.<br>
+
+<br><br>
+Customizing ROS:
+---
+Customization was our main focus through the development of the project. 
 
 <br><br>
 #### Project Contributors:
