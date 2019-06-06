@@ -21,7 +21,13 @@ Requirements:
 Installation:
 ---
 After cloning this repository (```git clone https://github.com/DPons97/reimagined-octo-spork.git ```):
-* Build darknet inside ```Server/darknet/``` (and test it!)
+* Build darknet inside ```Server/darknet/``` (and test it!)<br>
+  Download and place darknet's weights in **Server/darknet/**: 
+  ```bash
+  wget https://pjreddie.com/media/files/yolov3.weights
+  wget https://pjreddie.com/media/files/yolov3-tiny.weights
+  ```
+  
 * Build OctoSpork: 
   ```bash
   cd [...]/reimagined-octo-spork/
@@ -91,6 +97,7 @@ The server communicates every node an "idle" operation that is, in our case, a *
 **NB**: If you are not into detection and tracking systems, there still is something for you. Just skip the next paragraphs and go to *Customizing ROS.* <br><br>
 
 ![alt text](https://github.com/DPons97/reimagined-octo-spork/blob/master/Concept.jpg)
+*Icons made by: [Freepik](https://www.freepik.com/?__hstc=57440181.c2013b29b5d74612c3c8cab36bfc0203.1559675594943.1559675594943.1559847167123.2&__hssc=57440181.2.1559847167123&__hsfp=1353452017), [photo3idea-studio](https://www.flaticon.com/authors/photo3idea-studio), [eucalyp](https://www.flaticon.com/authors/eucalyp) from www.flaticon.com*<br>
 
 **NB**: As a lot of people don't have multiple cameras at their disposal, we implemented the video stream as a series of images (https://trac.ffmpeg.org/wiki/Create%20a%20thumbnail%20image%20every%20X%20seconds%20of%20the%20video). <br>
 Just remember to change FPS and other parameters inside bkgSubtraction and nodeTracker.<br>
@@ -111,8 +118,59 @@ Customizing ROS:
 ---
 Customization was our main focus through the development of the project. 
 
+### Client-side customization
+As mentioned above, nodes customization is acheived through a map file that associates an ID with a corresponding executable (**Client/Executables/executables.txt**).<br>
+When the client receives a message it first checks if it's asking to kill a process or to start a new one.<br>
+In case it needs to start a new one, it looks up the corresponding executable and parses the parameters (if present). <br>
+It then opens a new socket connection to bind to the new process. At this point the client forks and the child will start the executable. <br>
+Eventually the main process comunicates the pid of the new task to the server and starts to listen for new instructions again.<br>
+
+*The ClientNode should not need any modifications, it just parses messages and set up the new task.*<br>
+
+**How to structure new executables:**<br>
+New executables always take at least one parameters, the socket with which it communicates with the server. <br>
+If you want you can add additional parameters. The server will comunicate them to the task when sending the execution instruction to the client. 
+
+The client could receive a message from the server asking to kill a given pid. In this case ClientNode will send a SIGTERM to the received pid (if it still running).
+*You may want your executables to handle this signal in order to perform a clean exit of the task.*
+
+
+### Server-side customization
+Unlike client, ROS Server has to be customized directly from the source code, as it's composed of only one generic class: **Instruction.cpp** (you can find source code inside *Server/Instructions*).
+Basically, an object of type *Instrucion* is provided with all basic functionalities to communicate with a ClientNode:<br>
+* Default initializer:
+  ```cpp
+  Instruction(const string &name, std::map<int, int> &instructions, vector<void*> sharedMemory);
+  ```
+  **name** is, as the name says, a symbolic identifier of the instruction.<br>
+  **instructions** is a map that contains tuples <pid, socket>. Map key is the client process PID that's running the instruction bound to a specific socket (map value *socket*).<br>
+  To allow communication between different nodes and instructions inside the same server, a generic optional **sharedMemory** can be passed as parameter (e.g. planimetry). *Remember to cast this to the right data type before using!*<br>
+  
+
+* To start a new instruction inside a specific connected node:
+  ```cpp
+  int startInstruction(int instrCode, std::vector<string> args = std::vector<string>());
+  ```
+  Where **instrCode** is the instruction ID you defined inside *Client/Executables* bound to the relative executable, and **args** are all arguments you want the node to receive (e.g. inside tracking, the object ID to track is one additional argument passed). <br>
+  The return value is a new socket, which binds server to current node executable.<br>
+  
+  
+* If during the execution of your program you need to receive an image, you can use:
+  ```cpp
+  bool getAnswerImg(int rcvSocket, cv::Mat& outMat);
+  ```
+  Here **rcvSocket** is the receving socket (90% of the times it'll be your instruction socket), whereas **outMat** is a reference to a new OpenCV Mat where the received image will be stored.<br>
+  
+  
+* To stop (or force) a specific instruction and disconnect the relative socket:
+  ```cpp
+  void disconnect(int instrPid = 0);
+  ```
+  Where **instrPid** is the instruction node PID.<br>
+
+
 <br><br>
 #### Project Contributors:
 * Luca Collini [@Lucaz97](https://github.com/Lucaz97) - luca.collini@mail.polimi.it
 * Davide Pons [@DPons97](https://github.com/DPons97) - davide.pons@mail.polimi.it
-<br>
+<br>  
