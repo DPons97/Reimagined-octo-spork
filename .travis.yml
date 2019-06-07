@@ -26,6 +26,7 @@ script:
   - cmake -D CMAKE_BUILD_TYPE=Release -DOPENCV_EXTRA_MODULES_PATH="../../opencv_contrib-3.4.5/modules/" -DBUILD_opencv_dnn=ON ..
   - make -j7
   - sudo make install
+  - cd ../../
   - cmake --version
   - cmake CMakeLists.txt
   - cmake  --build . --target OctoSporkClient
