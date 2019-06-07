@@ -21,6 +21,14 @@ Tracker::Tracker(const string &name, std::map<int, int> &instructions, void *sha
     fileName = "";
 }
 
+/**
+ * Additional constructor
+ * Default constructor
+ * @param name symbolic name of this instruction
+ * @param instructions map of client's instruction PID and relative socket
+ * @param sharedMemory generic data to be shared with this instruction
+ * @param fileToWrite file name where coordinates will be stored
+ */
 Tracker::Tracker(const string &name, std::map<int, int> &instructions, void * sharedMemory, string fileToWrite) :
         Instruction(name, instructions, sharedMemory){
     xImgSize = 0;
@@ -110,6 +118,10 @@ void Tracker::tracking(string toTrack, int trackPid) {
     disconnect(trackPid);
 }
 
+/**
+ * Checks if something that was being tracked left frame and could possibly be seen by adjacent cameras
+ * @param lastCoord last coordinate known of object
+ */
 void Tracker::keepTracking(const coordinate &lastCoord) {
     vector<string> trackingArgs;
     trackingArgs.insert(trackingArgs.begin(), trackingName);
@@ -167,9 +179,9 @@ void Tracker::keepTracking(const coordinate &lastCoord) {
 
 /**
  * Wait for a new coordinate result to arrive from client
- * @param trackingSocket
- * @param outCoords
- * @return True if answer received successfully. False if error occurred or no coordinates left
+ * @param trackingSocket this instruction socket
+ * @param outCoords output coordinate structure to store results
+ * @return True if answer received successfully. False if error occurred or no coordinates left (stop by client)
  */
 bool Tracker::getAnswerCoordinates(int trackingSocket, coordinate& outCoords) {
     int n;
@@ -202,7 +214,7 @@ bool Tracker::getAnswerCoordinates(int trackingSocket, coordinate& outCoords) {
 
 /**
  * Transform coordinates from absolute to relative to this node
- * @param toTransform
+ * @param toTransform coordinates to be transformed (rotation + translation)
  */
 void Tracker::relToAbsCoords(coordinate& toTransform) {
     Node * thisNode = planimetry->getNodeBySocket(nodeSocket);
@@ -216,7 +228,10 @@ void Tracker::relToAbsCoords(coordinate& toTransform) {
 }
 
 /**
- * Save coordinates to file
+ * Save coordinates to file.
+ * This saves coordinates inside a new file or in an existing one (if fileName has been defined when declaring this instruction).
+ * @param toTrack object ID that has been tracked
+ * @param coords vector of all coordinates to save
  */
 void Tracker::saveCoords(string toTrack, std::vector<coordinate> coords) {
     auto stream = new fstream();

@@ -14,6 +14,9 @@
 #include "Planimetry.h"
 
 
+/**
+ * Interface to single client
+ */
 class SNode : public Instruction {
 
 public:

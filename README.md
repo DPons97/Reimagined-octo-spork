@@ -7,7 +7,7 @@ Requirements:
 ---
 
 **Server-side**:
-* @pjreddie's **[Darknet YOLO](https://pjreddie.com/darknet/yolo/)** (Already included in this repo) - https://github.com/pjreddie/darknet/
+* @pjreddie **[Darknet YOLO](https://pjreddie.com/darknet/yolo/)** (Already included in this repo) - https://github.com/pjreddie/darknet/
   + ***.cfg** that are in this repository have been tweaked to be faster with less powerful NVIDIA GPUs*
   + ***yolov3.weights** + **yolov3-tiny.weights** files are required and need to be placed inside **Server/darknet/***
 
@@ -96,7 +96,7 @@ Client nodes relay on a text file to match the instruction ID received from the 
 The server communicates every node an "idle" operation that is, in our case, a *Background subtraction* process. <br><br>
 **NB**: If you are not into detection and tracking systems, there still is something for you. Just skip the next paragraphs and go to *Customizing ROS.* <br><br>
 
-![alt text](https://github.com/DPons97/reimagined-octo-spork/blob/master/Concept.jpg)
+![](Concept.jpg)
 *Icons made by: [Freepik](https://www.freepik.com/?__hstc=57440181.c2013b29b5d74612c3c8cab36bfc0203.1559675594943.1559675594943.1559847167123.2&__hssc=57440181.2.1559847167123&__hsfp=1353452017), [photo3idea-studio](https://www.flaticon.com/authors/photo3idea-studio), [eucalyp](https://www.flaticon.com/authors/eucalyp) from www.flaticon.com*<br>
 
 **NB**: As a lot of people don't have multiple cameras at their disposal, we implemented the video stream as a series of images (https://trac.ffmpeg.org/wiki/Create%20a%20thumbnail%20image%20every%20X%20seconds%20of%20the%20video). <br>
@@ -113,7 +113,7 @@ For every frame that has the object in it, the node saves detected box's coordin
 When the object is no more in sight of the client's camera, the server receives all saved coordinates and analyze them to decide whether it could keep tracking through other connected cameras.<br>
 This is possible thanks to the planimetry that is stored inside server.<br>
 
-<br><br>
+<br>
 Customizing ROS:
 ---
 Customization was our main focus through the development of the project. 
@@ -145,7 +145,7 @@ Basically, an object of type *Instruction* is provided with all basic functional
   **name** is, as the name says, a symbolic identifier of the instruction.<br>
   **instructions** is a map that contains tuples <pid, socket>. Map key is the client process PID that's running the instruction bound to a specific socket (map value *socket*).<br>
   To allow communication between different nodes and instructions inside the same server, a generic optional **sharedMemory** can be passed as parameter (e.g. planimetry). *Remember to cast this to the right data type before using!*<br>
-  
+  <br>
 
 * To start a new instruction inside a specific connected node:
   ```cpp
@@ -153,23 +153,23 @@ Basically, an object of type *Instruction* is provided with all basic functional
   ```
   Where **instrCode** is the instruction ID you defined inside *Client/Executables* bound to the relative executable, and **args** are all arguments you want the node to receive (e.g. inside tracking, the object ID to track is one additional argument passed). <br>
   The return value is a new socket, which binds server to current node executable.<br>
-  
+  <br>
   
 * If during the execution of your program you need to receive an image, you can use:
   ```cpp
   bool getAnswerImg(int rcvSocket, cv::Mat& outMat);
   ```
   Here **rcvSocket** is the receving socket (90% of the times it'll be your instruction socket), whereas **outMat** is a reference to a new OpenCV Mat where the received image will be stored.<br>
-  
+  <br>
   
 * To stop (or force) a specific instruction and disconnect the relative socket:
   ```cpp
   void disconnect(int instrPid = 0);
   ```
   Where **instrPid** is the instruction node PID.<br>
+<br>
 
-
-<br><br>
+<br>
 #### Project Contributors:
 * Luca Collini [@Lucaz97](https://github.com/Lucaz97) - luca.collini@mail.polimi.it
 * Davide Pons [@DPons97](https://github.com/DPons97) - davide.pons@mail.polimi.it

@@ -9,6 +9,9 @@
 #include "Instruction.h"
 #include "../Planimetry.h"
 
+/**
+ * Single tracking coordinate to export in file
+ */
 typedef struct {
     int x;
     int y;
@@ -16,6 +19,9 @@ typedef struct {
     double confidence;
 } coordinate;
 
+/**
+ * Server-side tracking operations handler
+ */
 class Tracker : public Instruction {
 public:
     Tracker(const string &name, std::map<int, int> &instructions, void * sharedMemory);

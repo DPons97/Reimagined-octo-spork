@@ -48,14 +48,14 @@ Logger::Logger(bool print) {
 /**
  * Logger class that stores in file all prints
  * REMEMBER: use this class as a pointer and delete manually when no more used. Otherwise log file is not saved on disk.
- * @FileName custom name of log file
+ * @param fileName custom name of log file
  * @param print True if text has to be printed in console
  */
-Logger::Logger(const string &FileName, bool print){
+Logger::Logger(const string &fileName, bool print){
     LogFile = new fstream();
 
     this->FileName.assign("Logs/");
-    this->FileName.append(FileName).append(".log");
+    this->FileName.append(fileName).append(".log");
 
     // Replace spaces with underscores
     for (char &c : this->FileName) {
@@ -75,6 +75,10 @@ Logger::Logger(const string &FileName, bool print){
     this->print = print;
 }
 
+/**
+ * Retreive this logger last message
+ * @return last message that was written by this logger
+ */
 string Logger::getLastMessage() const {
     return string(LastMessage);
 }

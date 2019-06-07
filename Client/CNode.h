@@ -10,11 +10,17 @@
 #include <list>
 
 
+/**
+ * Generic child created during execution
+ */
 typedef struct {
     int pid;
     int socket;
 } child;
 
+/**
+ * Default client node handler
+ */
 class CNode {
 
 public:

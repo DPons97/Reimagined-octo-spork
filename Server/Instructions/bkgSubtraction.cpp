@@ -16,6 +16,11 @@ bkgSubtraction::bkgSubtraction(const string &name, std::map<int, int> &instructi
 
 }
 
+/**
+ * Start subtracting background from frames in search of movements
+ * @param socket main socket of this client (not this instruction socket!)
+ * @param port main port of this client (not this instruction port!)
+ */
 void bkgSubtraction::start(int socket, int port) {
     Instruction::start(socket, port);
 
@@ -32,6 +37,7 @@ void bkgSubtraction::start(int socket, int port) {
 
 /**
  * Manage background subtraction operations
+ * @param toTrack vector if object IDs to track
  */
 void bkgSubtraction::backgroundSubtraction(vector<int> toTrack) {
     float threshold = 0.5;

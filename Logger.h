@@ -11,6 +11,9 @@
 
 using namespace std;
 
+/**
+ * Custom logger class
+ */
 class Logger {
 
 private:
@@ -25,7 +28,7 @@ public:
 
     Logger(bool print = false);
 
-    Logger(const string &FileName, bool print=false);
+    Logger(const string &fileName, bool print=false);
 
     string getLastMessage() const;
 

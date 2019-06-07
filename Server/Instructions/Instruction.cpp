@@ -13,7 +13,9 @@ std::mutex Instruction::instrLock;
 
 /**
  * Default constructor
- * @param name -> This instruction's identifier
+ * @param name symbolic name of this instruction
+ * @param instructions map of client's instruction PID and relative socket
+ * @param sharedMemory vector of generic data to be shared with this instruction
  */
 Instruction::Instruction(const string &name, std::map<int, int> &instructions, vector<void*> sharedMemory) : name(name),
                                                                                   instructions(instructions),
@@ -25,6 +27,12 @@ Instruction::Instruction(const string &name, std::map<int, int> &instructions, v
     log = new Logger(name, true);
 }
 
+/**
+ * Default constructor
+ * @param name symbolic name of this instruction
+ * @param instructions map of client's instruction PID and relative socket
+ * @param sharedMemory generic data to be shared with this instruction
+ */
 Instruction::Instruction(const string &name, std::map<int, int> &instructions, void *sharedMemory) : name(name),
                                                                                   instructions(instructions) {
     std::vector<void *> memoryVector;

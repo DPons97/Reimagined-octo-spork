@@ -44,6 +44,10 @@ using namespace cv;
 using namespace dnn;
 using namespace std;
 
+/**
+ * Client-side tracking operations
+ */
+
 typedef struct {
     int x;
     int y;

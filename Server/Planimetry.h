@@ -11,19 +11,24 @@
 #include "../Logger.h"
 #include "Instructions/Instruction.h"
 
+/**
+ * Single node structure
+ */
 typedef struct NODE {
     Instruction * thisNode;
     int ID;
     int x;
     int z;
     int theta;
-    int cpuPower;
     NODE * up;
     NODE * bottom;
     NODE * left;
     NODE * right;
 } Node;
 
+/**
+ * Data structure that represents how nodes are distributed throughout the territory
+ */
 class Planimetry {
 
 public:

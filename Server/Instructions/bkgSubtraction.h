@@ -15,6 +15,9 @@
 #include <opencv2/core/hal/interface.h>
 #include <opencv2/highgui/highgui.hpp>
 
+/**
+ * Instruction to perform background subtraction
+ */
 class bkgSubtraction : public Instruction {
 
 public:

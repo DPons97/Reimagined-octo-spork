@@ -23,25 +23,50 @@
 #include <sys/stat.h>
 #include <opencv2/core/mat.hpp>
 
+/**
+ * Server-side instruction handler
+ */
 class Instruction {
 
 public:
+    /**
+     * Symbolic name of instruction
+     */
     string name;
 
+    /**
+     * Node socket to send new start and/or disconnect signals
+     */
     int nodeSocket;
 
+    /**
+     * Node port
+     */
     int nodePort;
 
+    /**
+     * Horizontal size of last received image
+     */
     int xImgSize;
 
+    /**
+     * Vertical size of last received image
+     */
     int yImgSize;
 
+    /**
+     * This instruction logger
+     */
     Logger * log;
 
-    // Map of current open instructions: int PID, int SOCKET
+    /**
+     * Map of current opened instructions: int PID, int SOCKET
+     */
     std::map<int, int> & instructions;
 
-    // Vector of memory that is shared with this node
+    /**
+     * Vector of memory that is shared with this node
+     */
     vector<void*> sharedMemory;
 
     Instruction(const string &name, std::map<int, int> &instructions, vector<void*> sharedMemory);
