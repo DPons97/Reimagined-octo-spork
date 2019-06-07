@@ -92,10 +92,7 @@ void Tracker::tracking(string toTrack, int trackPid) {
 
     // Get last coordinate
     if (coordinates.empty()) {
-        if (instructions[trackPid] != -1) {
-            close(instructions[trackPid]);
-            instructions[trackPid] = -1;
-        }
+        disconnect(trackPid);
         return;
     }
     coordinate lastCoord = coordinates[coordinates.size() - 1];
@@ -110,10 +107,7 @@ void Tracker::tracking(string toTrack, int trackPid) {
     newThread->detach();
 
     log->writeLog(std::string("[").append(toString()).append("] Disconnecting tracker instruction..."));
-    if (instructions[trackPid] != -1) {
-        close(instructions[trackPid]);
-        instructions[trackPid] = -1;
-    }
+    disconnect(trackPid);
 }
 
 void Tracker::keepTracking(const coordinate &lastCoord) {

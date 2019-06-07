@@ -297,17 +297,13 @@ void Instruction::disconnect(int instrPid) {
     toClose.push_back(std::to_string(instrPid));
     sendMessage(0,toClose);
 
-    if (instrPid != -1) {
+    if (instrPid != 0 && instructions[instrPid] != -1) {
         close(instructions[instrPid]);
-
-        for (auto & instruction : instructions) {
-            if (instruction.first == instrPid)
-                instruction.second = -1;
-        }
-    } else {
+        instructions[instrPid] = -1;
+    } else if (instrPid == 0) {
         // Close all instruction connections left
         for (auto & instr : instructions) {
-            close(instr.second);
+            if (instr.second != -1) close(instr.second);
             instr.second = -1;
         }
     }

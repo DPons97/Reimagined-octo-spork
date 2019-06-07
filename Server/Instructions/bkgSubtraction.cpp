@@ -90,9 +90,6 @@ void bkgSubtraction::backgroundSubtraction(vector<int> toTrack) {
 
                         auto trackingInstr = new Tracker(string(labels[j]).append("-Tracker"), instructions, planimetry);
                         trackingInstr->start(nodeSocket, nodePort, trackingArgs);
-
-                        // TODO Track only first object. To be fixed
-                        break;
                     }
                 }
             }
@@ -100,15 +97,9 @@ void bkgSubtraction::backgroundSubtraction(vector<int> toTrack) {
             cpp_free_detections(result, num_boxes);
         }
 
-        if (instructions[bkgPid] != -1) {
-            close(instructions[bkgPid]);
-            instructions[bkgPid] = -1;
-        }
+        disconnect(bkgPid);
     }
 
     // Stopped video stream or error occurred. Disconnecting last socket
-    if (instructions[bkgPid] != -1) {
-        close(instructions[bkgPid]);
-        instructions[bkgPid] = -1;
-    }
+    disconnect(bkgPid);
 }
