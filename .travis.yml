@@ -1,48 +1,41 @@
-matrix:
-  include:
-    # works on Precise and Trusty
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-4.9
-      env:
-        - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+language: cpp
+compiler: gcc
 
-    # works on Precise and Trusty
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-5
-      env:
-        - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
+os: linux
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - gcc-8
+      - g++-8
+      - cmake
 
-    # works on Precise and Trusty
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-6
-      env:
-        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
+install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-8" CC="gcc-8"; fi
 
-    # works on Precise and Trusty
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-      env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+cache:
+  directories:
+    - opencv-3.4.5/
+    - opencv_contrib-3.4.5/
 
-before_install:
-  - eval "${MATRIX_EVAL}"
+before_script:
+  # Check versions of gcc, g++ and cmake
+  - gcc -v && g++ -v
+  - bash build_opencv.sh
+  - cd opencv-3.4.5/build/
+  - sudo make install
+  - cd ../../
+  # Build Darknet libs
+  - cd Server/darknet/
+  - make
+  - cd ../../
+
+script:
+  - mkdir build
+  - cd build
+  - cmake ..
+  - make OctoSporkClient
+  - make OctoSporkServer
+  - make bkgSubtraction
+  - make nodeTracker
