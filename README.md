@@ -70,6 +70,16 @@ cd path-to/reimagined-octo-spork/build
   
   **NB:** *node_x*, *node_y*, *theta* are respectively the coordinates and the phase displacement of the camera's node. 
 
+Run ROS demo client:
+  * node 1 (set cam1 in file path in the executables files)
+     ```bash
+    ./OctoSporkClient [ipaddress] 51297 1 0 0 0 3 4 5 2 
+    ```
+  * node 2 (set cam2 in file path in the executables files)
+    ```bash
+    ./OctoSporkClient [ipaddress] 51297 2 0 0 260 7 8 1 9 
+    ```
+<br>
 
 Tested Hardware:
 ---
