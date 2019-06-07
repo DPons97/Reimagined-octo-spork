@@ -10,7 +10,6 @@ addons:
       - gcc-8
       - g++-8
       - cmake
-      - ffmpeg
 
 script:
   - export CC=gcc-8
