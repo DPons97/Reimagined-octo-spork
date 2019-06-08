@@ -1,4 +1,4 @@
-# [PII] ROS - Reimagined Octo-Spork
+# [PII] ROS - Reimagined Octo-Spork [![Build Status](https://travis-ci.org/DPons97/reimagined-octo-spork.svg?branch=master)](https://travis-ci.org/DPons97/reimagined-octo-spork)
 #### Heterogeneous distributed system for object tracking and fun stuff
 
 This project involves object recognition with Darknet and OpenCV's YOLO algorithm running on a distributed system for object tracking.
