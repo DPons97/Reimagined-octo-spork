@@ -180,6 +180,7 @@ Basically, an object of type *Instruction* is provided with all basic functional
 <br>
 
 <br>
+
 #### Project Contributors:
 * Luca Collini [@Lucaz97](https://github.com/Lucaz97) - luca.collini@mail.polimi.it
 * Davide Pons [@DPons97](https://github.com/DPons97) - davide.pons@mail.polimi.it
