@@ -49,7 +49,7 @@ After cloning this repository (```git clone https://github.com/DPons97/reimagine
   make OctoSporkClient
   ```
   
-* If you decided to build Client, you have to move and compile *bkgSubtraction* and *nodeTracker* inside ***Client/Executables***.
+* If you decided to build Client, you must move and compile *bkgSubtraction* and *nodeTracker* inside ***Client/Executables***.
 
 Running ROS:
 ---
@@ -106,8 +106,8 @@ Now let's **talk about the fun stuff.**<br>
 How does it work?
 ---
 The ROS system's architecture is based on one SERVER (in our case the Jetson-TX2) and one or more CLIENTS / NODES (Odroid XU4 or any linux pc).<br>
-Every client connects to the server sending his planimetry informations (his node's ID and his neighbours' IDs) and waits for new instructions to be executed.<br>
-Client nodes relay on a text file to match the instruction ID received from the server with an actual executable that it can run in a new process. In this way the client side is easy to customize (more on that later... ).
+Every client connects to the server sending his planimetry information (his node's ID and his neighbours' IDs) and waits for new instructions to be executed.<br>
+Client nodes relay on a text file to match the instruction ID received from the server with an actual executable that it can run in a new process. In this way the client side is easy to customize (more on that later...).
 The server communicates every node an "idle" operation that is, in our case, a *Background subtraction* process. <br><br>
 **NB**: If you are not into detection and tracking systems, there still is something for you. Just skip the next paragraphs and go to *Customizing ROS.* <br><br>
 
@@ -116,7 +116,7 @@ The server communicates every node an "idle" operation that is, in our case, a *
 *Icons made by: [Freepik](https://www.freepik.com/?__hstc=57440181.c2013b29b5d74612c3c8cab36bfc0203.1559675594943.1559675594943.1559847167123.2&__hssc=57440181.2.1559847167123&__hsfp=1353452017), [photo3idea-studio](https://www.flaticon.com/authors/photo3idea-studio), [eucalyp](https://www.flaticon.com/authors/eucalyp) from www.flaticon.com*<br>
 
 **NB**: As a lot of people don't have multiple cameras at their disposal, we implemented the video stream as a series of images (https://trac.ffmpeg.org/wiki/Create%20a%20thumbnail%20image%20every%20X%20seconds%20of%20the%20video). <br>
-Just remember to change FPS and other parameters inside bkgSubtraction and nodeTracker.<br>
+*Just remember to change FPS and other parameters inside bkgSubtraction and nodeTracker.*<br>
 
 ### Background subtraction
 During this initial phase every client applies background subtraction (provided by OpenCV) to a given video stream.<br>
@@ -130,7 +130,8 @@ When the object is no more in sight of the client's camera, the server receives 
 This is possible thanks to the planimetry that is stored inside server.<br>
 
 <br>
-Customizing ROS:
+
+Customizing ROS
 ---
 Customization was our main focus through the development of the project. 
 
