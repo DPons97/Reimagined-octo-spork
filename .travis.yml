@@ -1,6 +1,11 @@
 language: cpp
 compiler: gcc
 
+# Blacklist
+branches:
+  only:
+      - master
+
 os: linux
 addons:
   apt:
@@ -10,6 +15,7 @@ addons:
       - gcc-8
       - g++-8
       - cmake
+      - doxygen
 
 install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-8" CC="gcc-8"; fi
@@ -39,3 +45,15 @@ script:
   - make OctoSporkServer
   - make bkgSubtraction
   - make nodeTracker
+  - cd ../
+  - doxygen doxyConfig
+
+deploy:
+   provider: pages
+   skip_cleanup: true
+   local_dir: html
+   github_token: $GH_REPO_TOKEN
+   on:
+    branch: master
+
+
