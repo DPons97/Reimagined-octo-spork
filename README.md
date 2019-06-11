@@ -15,6 +15,11 @@ Requirements:
 * **OpenCV 3.4.5** - https://github.com/opencv/opencv/releases/tag/3.4.5 
   + **OpenCV_DNN** additional modules - https://github.com/opencv/opencv_contrib/releases/tag/3.4.5
   + Installation guide here: https://docs.opencv.org/3.2.0/de/d25/tutorial_dnn_build.html
+  + If you feel brave enough, you can try the automatic installation launching the script that you find inside this repo (it should download, compile the right version of OpenCV):
+    ```bash
+    sudo sh build_opencv.sh
+    ```
+    **NB:** This script doesn't install OpenCV. After executing it, you still have to go to *opencv-3.4.5/build/* and ```install```.<br>
 
 * A *LOT* of patience
 
@@ -157,8 +162,16 @@ Basically, an object of type *Instruction* is provided with all basic functional
   **instructions** is a map that contains tuples <pid, socket>. Map key is the client process PID that's running the instruction bound to a specific socket (map value *socket*).<br>
   To allow communication between different nodes and instructions inside the same server, a generic optional **sharedMemory** can be passed as parameter (e.g. planimetry). *Remember to cast this to the right data type before using!*<br>
   <br>
+  
+* First function to call every time you want to start the instruction is:
+  ```cpp
+  virtual void start(int socket, int port, std::vector<std::string> args);
+  ```
+  This will let the instruction know which **socket** and **port** are bound to this node. <br>
+  Additional arguments (**args**) can be passed if needed (optional).<br>
+  <br>
 
-* To start a new instruction inside a specific connected node:
+* To send a start signal for a new instruction inside a specific connected node:
   ```cpp
   int startInstruction(int instrCode, std::vector<string> args = std::vector<string>());
   ```
@@ -177,9 +190,11 @@ Basically, an object of type *Instruction* is provided with all basic functional
   ```cpp
   void disconnect(int instrPid = 0);
   ```
-  Where **instrPid** is the instruction node PID.<br>
+  Where **instrPid** is the instruction node PID (if no pid is defined, all instructions will be closed of this node).<br>
 <br>
 
+For additional informations and a code example, feel free to explore this repository.
+Otherwise, if you have questions or something wasn't clear, you can contact us on GitHub or via email.
 <br>
 
 #### Project Contributors:
