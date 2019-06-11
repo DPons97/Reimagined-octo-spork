@@ -894,6 +894,8 @@ EXCLUDE_SYMLINKS       = NO
 EXCLUDE_PATTERNS       = */Server/darknet/* \
 			 */Server/darknetCPP/* \
 			 */Client/Executables/resources/* \
+			 */opencv-3.4.5/* \
+			 */opencv_contrib-3.4.5/*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
