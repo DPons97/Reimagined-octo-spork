@@ -63,7 +63,7 @@ cd path-to/reimagined-octo-spork/build
   ```
 * Client side:
   There are two ways to run the client executable:
-  * Passing all informations as arguments
+  * Passing all information as arguments
   ```bash
   ./OctoSporkClient [ipaddress] [port] [node_id] [node_x] [node_y] [theta] [top_neighbour] [bottom_n] [left_n] [right_n] 
   ```
@@ -71,16 +71,16 @@ cd path-to/reimagined-octo-spork/build
   ```bash
   ./OctoSporkClient [path_to_cfg_file]
   ```
-  The configuration file should be a one line file with the arguments you would pass as above.
+  The configuration file should be a one-line file with the arguments you would pass as above.
   
   **NB:** *node_x*, *node_y*, *theta* are respectively the coordinates and the phase displacement of the camera's node. 
 
 Run ROS demo client:
-  * node 1 (set cam1 in file path in the executables files)
+  * Node 1 (set cam1 in file path in *Client/Executables/* files)
      ```bash
     ./OctoSporkClient [ipaddress] 51297 1 0 0 0 3 4 5 2 
     ```
-  * node 2 (set cam2 in file path in the executables files)
+  * Node 2 (set cam2 in file path in *Client/Executables/* files)
     ```bash
     ./OctoSporkClient [ipaddress] 51297 2 0 0 260 7 8 1 9 
     ```
@@ -100,7 +100,7 @@ As we needed to work on a realistic case study, we thought about diving into ima
 First, we did some research to find the algorithms we had at disposal and to select which one was the most suitable for our hardware.<br>
 Pjreddie's darknet network is really good concerning detection and it's fast enough on the Jetson but, having to also use an Odroid XU4 (8 cores CPU, no GPU), YOLO's library would result in really high computational times.<br>
 Here's where OpenCV's Deep Neural Network module comes in handy: it features a 9x faster implementation of DNN using CPU with the same darknet's yolov3 configuration file.<br>
-Some tweaking to the cfg are required to achive an acceptable speed, although trading off some accuracy.<br>
+Some tweaking to the cfg are required to achieve an acceptable speed, although trading off some accuracy.<br>
 Now let's **talk about the fun stuff.**<br>
 
 How does it work?
@@ -120,33 +120,33 @@ The server communicates every node an "idle" operation that is, in our case, a *
 
 ### Background subtraction
 During this initial phase every client applies background subtraction (provided by OpenCV) to a given video stream.<br>
-Once a blob that is big enough is detected, the node sends last frame that was analyzed to the server to run a first object detection in search of certain user-defined objects.<br>
+Once a blob that is big enough is detected, the node sends last frame that was analysed to the server to run a first object detection in search of certain user-defined objects.<br>
 If something is found (inside our project we search for people), a new *Tracking* instruction is sent to the node that found the blob.<br>
 
 ### Tracking
 If a client receives this instruction, it starts tracking the defined object that should be in his sight.<br>
 For every frame that has the object in it, the node saves detected box's coordinates and tries to estimate distance from the camera (with bad results, for now :neutral_face:).<br>
-When the object is no more in sight of the client's camera, the server receives all saved coordinates and analyze them to decide whether it could keep tracking through other connected cameras.<br>
+When the object is no more in sight of the client's camera, the server receives all saved coordinates and analyse them to decide whether it could keep tracking through other connected cameras.<br>
 This is possible thanks to the planimetry that is stored inside server.<br>
 
 <br>
 
 Customizing ROS
 ---
-Customization was our main focus through the development of the project. 
+Customization was our focus through the development of the project. 
 
 ### Client-side customization
-As mentioned above, nodes customization is acheived through a map file that associates an ID with a corresponding executable (**Client/Executables/executables.txt**).<br>
+As mentioned above, nodes customization is achieved through a map file that associates an ID with a corresponding executable (**Client/Executables/executables.txt**).<br>
 When the client receives a message it first checks if it's asking to kill a process or to start a new one.<br>
 In case it needs to start a new one, it looks up the corresponding executable and parses the parameters (if present). <br>
 It then opens a new socket connection to bind to the new process. At this point the client forks and the child will start the executable. <br>
-Eventually the main process comunicates the pid of the new task to the server and starts to listen for new instructions again.<br>
+Eventually the main process communicates the pid of the new task to the server and starts to listen for new instructions again.<br>
 
 *The ClientNode should not need any modifications, it just parses messages and set up the new task.*<br>
 
 **How to structure new executables:**<br>
 New executables always take at least one parameters, the socket with which it communicates with the server. <br>
-If you want you can add additional parameters. The server will comunicate them to the task when sending the execution instruction to the client. 
+If you want you can add additional parameters. The server will communicate them to the task when sending the execution instruction to the client. 
 
 The client could receive a message from the server asking to kill a given pid. In this case ClientNode will send a SIGTERM to the received pid (if it still running).
 *You may want your executables to handle this signal in order to perform a clean exit of the task.*
