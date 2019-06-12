@@ -115,7 +115,7 @@ How does it work?
 ---
 The ROS system's architecture is based on one SERVER (in our case the Jetson-TX2) and one or more CLIENTS / NODES (Odroid XU4 or any linux pc).<br>
 Every client connects to the server sending his planimetry information (his node's ID and his neighbours' IDs) and waits for new instructions to be executed.<br>
-Client nodes relay on a text file to match the instruction ID received from the server with an actual executable that it can run in a new process. In this way the client side is easy to customize (more on that later...).
+Client nodes relay on a text file to match the instruction ID received from the server with an actual executable that it can run in a new process. In this way the client side is easy to customize (more on that later...).<br>
 Everytime a client connects to the server, the latter updates the planimetry of the system and communicates the node an "idle" operation that is, in our case study, a *Background subtraction* process. <br>
 When a client ends it's idle operation it comunicates the termination (and a result, if present) to the server. The server then decides which task to assign to the client. 
 The server also stores all the PID of the processes running on clients. In this way, when necessary, it can tell a client to stop a certain process. 
