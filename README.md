@@ -95,7 +95,15 @@ Tested Hardware:
 
 The idea:
 ---
-The initial goal was to develop a software that involved distributed heterogeneous systems that would be flexible and reusable for different applications.<br>
+The task for this project was to work on a framework for distributed software.
+Requirements included:
+*	Achieving a good level of customizability and scalability
+*	Compatible with mobile CPUs (ARM 32bit) and embedded boards
+*	Working demo of a case study using the framework
+
+
+The initial goal was to develop a peer to peer system with an external resource controller that would manage the load between the nodes.<br>
+We took an incremental approach to the project and we first worked to build a simpler version with a client server architecture. We then realized that we could get a good result by improving our first version, and since time was running low, so we did.<br>
 As we needed to work on a realistic case study, we thought about diving into image recognition and building a distributed tracking system.<br>
 First, we did some research to find the algorithms we had at disposal and to select which one was the most suitable for our hardware.<br>
 Pjreddie's darknet network is really good concerning detection and it's fast enough on the Jetson but, having to also use an Odroid XU4 (8 cores CPU, no GPU), YOLO's library would result in really high computational times.<br>
@@ -108,7 +116,11 @@ How does it work?
 The ROS system's architecture is based on one SERVER (in our case the Jetson-TX2) and one or more CLIENTS / NODES (Odroid XU4 or any linux pc).<br>
 Every client connects to the server sending his planimetry information (his node's ID and his neighbours' IDs) and waits for new instructions to be executed.<br>
 Client nodes relay on a text file to match the instruction ID received from the server with an actual executable that it can run in a new process. In this way the client side is easy to customize (more on that later...).
-The server communicates every node an "idle" operation that is, in our case, a *Background subtraction* process. <br><br>
+Everytime a client connects to the server, the latter updates the planimetry of the system and communicates the node an "idle" operation that is, in our case study, a *Background subtraction* process. <br>
+When a client ends it's idle operation it comunicates the termination (and a result, if present) to the server. The server then decides which task to assign to the client. 
+The server also stores all the PID of the processes running on clients. In this way, when necessary, it can tell a client to stop a certain process. 
+
+<br><br>
 **NB**: If you are not into detection and tracking systems, there still is something for you. Just skip the next paragraphs and go to *Customizing ROS.* <br><br>
 
 ![](./Concept.svg)
