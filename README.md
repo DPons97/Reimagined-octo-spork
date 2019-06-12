@@ -133,7 +133,8 @@ This is possible thanks to the planimetry that is stored inside server.<br>
 
 Customizing ROS
 ---
-Customization was our focus through the development of the project. 
+Customization was our focus through the development of the project. <br>
+The full documentation of our code can be found [here](https://dpons97.github.io/reimagined-octo-spork/)
 
 ### Client-side customization
 As mentioned above, nodes customization is achieved through a map file that associates an ID with a corresponding executable (**Client/Executables/executables.txt**).<br>
